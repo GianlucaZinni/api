@@ -1,23 +1,25 @@
 import logging
 from layers.common.common_logging import logging_handler
 from layers.web_services.request_handler import RequestHandler
+from flask import Blueprint
 
 LOG_LEVEL = "INFO"
 logger = logging.getLogger()
 logger.setLevel(LOG_LEVEL)
 logger.info("Starting REST API")
 
+restapi_app = Blueprint('restapi', __name__)
+
 @logging_handler(log_level=LOG_LEVEL)
 def handler(event, unused_context):
     request_handler = ApiRestHandler(event, logger)
-    print(request_handler)
     
     if request_handler.is_resource("/employee"):
         if request_handler.is_post():
             return request_handler.new_employee()
-        
+
 class ApiRestHandler(RequestHandler):
-    def __ini__(self, event):
+    def __init__(self, event, logger):
         super().__init__(event, logger)
         self.logger = logger
         
@@ -28,7 +30,7 @@ class ApiRestHandler(RequestHandler):
             print(item)
         
         return self.response_ok({"result": "new_employee ok"})
-    
+
 evn = {
     "resource": "/employee",
     "httpMethod": "POST",
