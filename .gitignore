@@ -1,1 +1,11 @@
 .md
+.venv
+*.swp
+package-lock.json
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+
+
+*.log
