@@ -6,3 +6,4 @@ twine
 pytest
 pytest-cov
 pytest-env
+msal
