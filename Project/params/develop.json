@@ -1,0 +1,34 @@
+{
+    "DB_CONFIG": {
+        "GENERAL": {
+            "USERNAME": "root",
+            "PASSWORD": "42886236",
+            "HOST": "localhost"
+        },
+        "DATABASES": {
+            "Auth_db": {
+                "driver": "mysql",
+                "charset": "utf8",
+                "collation": "utf8_unicode_ci"
+            },
+            "Signatures_db": {
+                "driver": "mysql",
+                "charset": "utf8",
+                "collation": "utf8_unicode_ci"
+            }
+        }
+    },
+    "google_auth": {
+        "client_id": "763831980100-jla6gkspnss9vqkc13kblqe9mjht0ib1.apps.googleusercontent.com",
+        "project_id": "long-base-402902",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_secret": "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",
+        "redirect_uris": [
+            "http://127.0.0.1:5001/callback",
+            "http://127.0.0.1:5001/google/login",
+            "http://127.0.0.1:5001/google/login/authorized"
+        ]
+    }
+}
