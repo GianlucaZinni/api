@@ -15,6 +15,7 @@ from database.mysql.index import MySQLHandler
 MySQLHandler()
 
 from votechain_api import create_app
+
 votechain_app = create_app()
 
 if __name__ == "__main__":

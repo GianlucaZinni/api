@@ -16,8 +16,10 @@ def create_app(config_class=Config):
 
     from votechain_api.stacks.auth.functions.google_auth.index import google_auth
     from votechain_api.stacks.auth.functions.votechain_auth.index import votechain_auth
+    from votechain_api.stacks.vote.functions.votacion.index import votacion
 
     app.register_blueprint(google_auth)
     app.register_blueprint(votechain_auth)
+    app.register_blueprint(votacion)
 
     return app

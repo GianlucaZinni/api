@@ -7,7 +7,7 @@ params = db_app.enviroment_variables
 class SQLAlchemyHandler:
     
     def connect(self, database_name):
-        engine = create_engine(f"{params['DB_CONFIG']['SQLALCHEMY']['DATABASE_URI']}{database_name}", echo=True)
+        engine = create_engine(f"{params['DB_CONFIG']['SQLALCHEMY']['DATABASE_URI']}{database_name}")
         session_maker = sessionmaker(bind=engine)
         return session_maker()
 

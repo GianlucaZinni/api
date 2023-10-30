@@ -13,7 +13,7 @@
         ],
         "SQLALCHEMY": {
             "DATABASE_URI": "mysql://root:42886236@localhost/",
-            "TRACK_MODIFICATIONS": true
+            "TRACK_MODIFICATIONS": false
         }
     },
     "GOOGLE_AUTH": {

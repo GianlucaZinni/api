@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Arcos Dorados Mail</title>
+        <!-- Stylesheet -->
+        <style>
+            /* Media Queries */
+            @media screen and (max-width: 600px) {
+                table {
+                    width: 100%;
+                }
+            }
+
+            /* Styles */
+            body {
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .text {
+                padding: 20px;
+                min-height: 200px;
+                text-align: center;
+                font-weight: 700;
+                font-size: 16px;
+            }
+
+            .topbar {
+                display: flex;
+                background-color: #4d2325;
+                padding: 20px;
+                color: #eee;
+            }
+
+            .topbar h3 {
+                text-align: end;
+                width: 100%;
+            }
+
+            .flexexpandable {
+                flex-grow: 1;
+            }
+
+            .footer p {
+                font-size: 12px;
+                color: #eee;
+                margin: 0;
+            }
+
+        </style>
+    </head>
+
+    <body style="margin: 0; padding: 0; background-color: #f4f4f4;">
+
+        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td>
+                    <table align="center" border="0" cellpadding="0" cellspacing="0" width="600"
+                        style="border-collapse: collapse;">
+                        <tr>
+                            <td>
+                                <div class="topbar">
+                                    <h3>Método de verificación personal</h3>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td bgcolor="#ffffff" style="padding: 40px 30px 40px 30px;">
+                                <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                    <tr>
+                                        <td style="color: #333333; font-family: Arial, sans-serif; font-size: 24px;">
+                                            <h2>Hola [[username]]!</h2>
+                                            <h5>Porfavor, completa la verificación</h5>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td
+                                            style="padding: 10px 0 20px 0; color: #666666; font-family: Arial, sans-serif; font-size: 14px; line-height: 24px;">
+                                            <br> Copia el código y pégalo en el campo de verificación. [[minutos]] minutos </br>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td align="center" style="font-family: Arial, sans-serif; font-size: 30px; line-height: 24px;">
+                                            <p class="report-summary-title">[[codigo_de_verificacion]]</p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td bgcolor="#4d2325" style="display: flex; align-items: center; padding: 30px 30px 30px 30px;">
+                                <div class="footer">
+                                    <p>© [[year]] Votechain - Universidad Belgrano. All Rights Reserved.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="color: #000000; font-family: Arial, sans-serif; font-size: 12px; text-align: center;">
+                                <p>Votechain - Universidad Belgrano<br>Villanueva 1324<br>Provincia de Buenos Aires,
+                                    Argentina<br></p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>

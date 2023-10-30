@@ -1,113 +1,94 @@
-from flask import redirect, url_for, session, render_template_string, Blueprint
-from functools import wraps
-from votechain_api.stacks.auth.models import VotechainUsers
+from flask import redirect, url_for, session, render_template_string, Blueprint, flash
+from votechain_api.stacks.auth.models import VotechainUsers, GoogleUsers
 from votechain_api.stacks.auth import AuthStack
 from votechain_api.stacks.auth.functions.votechain_auth.forms import RegistrationForm
+from votechain_api.access import google_login_required, votechain_register_required
 
 auth = AuthStack()
 
-votechain_auth = Blueprint("VotechainAuth", __name__)
+votechain_auth = Blueprint("Auth-votechain_auth", __name__)
 
 db_session = auth.db_session
-
-def google_login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if "google_token" in session:
-            return f(*args, **kwargs)
-        else:
-            # Redirige al usuario a la página de inicio de sesión de Google.
-            return redirect(url_for("GoogleAuth.google_login"))
-
-    return decorated_function
-
-
-def votechain_register_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        # Verifica si el usuario está autenticado en Votechain
-        if "google_token" not in session:
-            return redirect(url_for("GoogleAuth.google_login"))
-
-        user_info = auth.google.get("userinfo")
-        user_data = user_info.data
-
-        # Verifica si el usuario ya existe en la base de datos de Votechain
-        user = db_session.query(VotechainUsers).filter_by(id=user_data["id"]).first()
-
-        if user:
-            # Si el usuario ya está registrado, permite el acceso a la función original.
-            return f(*args, **kwargs)
-        else:
-            # Si el usuario no está registrado, redirige a la página de registro de Votechain.
-            return redirect(url_for("VotechainAuth.votechain_register"))
-
-    return decorated_function
 
 
 @google_login_required
 @votechain_auth.route("/votechain/register", methods=["GET", "POST"])
 def votechain_register():
     if "google_token" not in session:
-        return redirect(url_for("GoogleAuth.google_login"))
+        return redirect(url_for("Auth-google_auth.google_login"))
 
-    user_info = auth.google.get("userinfo")
-    user_data = user_info.data
+    user_data = auth.google.get("userinfo").data
+    votechain_user = (
+        db_session.query(VotechainUsers).filter_by(id=user_data["id"]).first()
+    )
 
-    # Verifica si el usuario ya existe en la base de datos de Votechain
-    user = db_session.query(VotechainUsers).filter_by(id=user_data["id"]).first()
-
-    if user:
+    if votechain_user:
         # Si el usuario ya está registrado, redirige a la página de userinfo
-        return redirect(url_for("VotechainAuth.user_info"))
+        return redirect(url_for("Auth-votechain_auth.user_info", _external=True))
+    else:
+        form = RegistrationForm()
 
-    form = RegistrationForm()
-
-    if form.validate_on_submit():
-        # Verifica si el usuario ya existe en la base de datos
-        user = db_session.query(VotechainUsers).filter_by(id=user_data["id"]).first()
-        if user is None:
-            user = VotechainUsers(
-                id=user_data["id"],
-                email=user_data["email"],
-                name=form.name.data,
-                surname=form.surname.data,
-                picture=user_data["picture"],
-                dni=form.dni.data,
-                telefono=form.telefono.data,
+        if form.validate_on_submit():
+            # Verifica si el usuario ya existe en la base de datos
+            persona = (
+                db_session.query(VotechainUsers).filter_by(dni=form.dni.data).first()
             )
-            db_session.add(user)
-            db_session.commit()
-            
-        return redirect(url_for("VotechainAuth.user_info"))
+            if persona is None:
+                email = (
+                    db_session.query(VotechainUsers)
+                    .filter_by(email=user_data["email"])
+                    .first()
+                )
+                if email is None:
+                    persona = VotechainUsers(
+                        id=user_data["id"],
+                        email=user_data["email"],
+                        name=form.name.data,
+                        surname=form.surname.data,
+                        picture=user_data["picture"],
+                        dni=form.dni.data,
+                        telefono=form.telefono.data,
+                    )
+                    db_session.add(persona)
+                    db_session.commit()
+                    db_session.close()
+                    return redirect(url_for("Auth-votechain_auth.user_info"))
 
-    # Crea una cadena de texto HTML para el formulario
-    form_html = """
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        <label for="name">Nombre:</label>
-        <input type="text" name="name" id="name"><br><br>
-        <label for="surname">Apellido:</label>
-        <input type="text" name="surname" id="surname"><br><br>
-        <label for="dni">DNI:</label>
-        <input type="text" name="dni" id="dni"><br><br>
-        <label for="telefono">Teléfono:</label>
-        <input type="text" name="telefono" id="telefono" value="{{ form.telefono.data }}"><br><br>
-        <input type="submit" value="Registrar">
-    </form>
-    """
+            print(
+                "Ya existe un usuario con ese DNI. Por favor, loguearse con el mail que ya registrado."
+            )
+            return redirect(url_for("Auth-votechain_auth.votechain_register"))
+        # Crea una cadena de texto HTML para el formulario
+        form_html = """
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <label for="name">Nombre:</label>
+            <input type="text" name="name" id="name"><br><br>
+            <label for="surname">Apellido:</label>
+            <input type="text" name="surname" id="surname"><br><br>
+            <label for="dni">DNI:</label>
+            <input type="text" name="dni" id="dni"><br><br>
+            <label for="telefono">Teléfono:</label>
+            <input type="text" name="telefono" id="telefono" value="{{ form.telefono.data }}"><br><br>
+            <input type="submit" value="Registrar">
+        </form>
+        """
 
-    return render_template_string(form_html, form=form)
+        return render_template_string(form_html, form=form)
 
 
 @votechain_auth.route("/votechain/user_info", methods=["GET"])
-@google_login_required  # Requiere autenticación de Google
-@votechain_register_required  # Requiere autenticación de Votechain
+@google_login_required
 def user_info():
-    user_info = auth.google.get("userinfo")
-    user_data = user_info.data
-    user = db_session.query(VotechainUsers).filter_by(id=user_data["id"]).first()
+    user_data = auth.google.get("userinfo").data
+    google_user = (
+        db_session.query(GoogleUsers).filter_by(google_id=user_data["id"]).first()
+    )
 
+    if not google_user:
+        return redirect(url_for("Auth-google_auth.google_login"))
+
+    user = db_session.query(VotechainUsers).filter_by(id=user_data["id"]).first()
     if user:
         # Crea una cadena de texto HTML de respuesta
         response_html = """
@@ -124,7 +105,7 @@ def user_info():
             <p for="DNI" value="{{ user.dni }}">DNI: {{ user.dni }} </p>
             <p for="Teléfono" value="{{ user.telefono }}">Teléfono: {{ user.telefono }} </p>
         </body>
-        <a href='/auth'><button>Ir a votar</button></a>
+        <a href="{{ url_for("Vote-votacion.votar") }}"><button>Ir a votar</button></a>
         </html>
         """
 
