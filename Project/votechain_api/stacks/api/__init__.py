@@ -51,15 +51,3 @@ class ApiStack:
         # )
         
         # api.add_namespace(Token)
-        
-
-# Importa y registra los espacios de nombres de tus recursos aquí
-# from .functions.token.resources import ns as token_ns
-"""
-Espacios de nombres
-Los espacios de nombres son opcionales y añaden un toque organizativo adicional a la API, principalmente, desde el punto de vista de la documentación. Un espacio de nombres le permite agrupar recursos relacionados bajo una raíz común y es fácil de crear:
-ns_conf = api.namespace('conferences', description='Conference operations')
-"""
-# api.add_namespace(token_ns)
-
-# Puedes hacer lo mismo para otros recursos

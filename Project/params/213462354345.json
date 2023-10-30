@@ -1,24 +1,22 @@
 {
+    "SECRET_KEY": "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",
     "DB_CONFIG": {
         "GENERAL": {
             "USERNAME": "root",
             "PASSWORD": "42886236",
             "HOST": "localhost"
         },
-        "DATABASES": {
-            "Auth_db": {
-                "driver": "mysql",
-                "charset": "utf8",
-                "collation": "utf8_unicode_ci"
-            },
-            "Signatures_db": {
-                "driver": "mysql",
-                "charset": "utf8",
-                "collation": "utf8_unicode_ci"
-            }
+        "DATABASES": [
+            "VOTECHAIN",
+            "SIGNATURES",
+            "RENAPER"
+        ],
+        "SQLALCHEMY": {
+            "DATABASE_URI": "mysql://root:42886236@localhost/",
+            "TRACK_MODIFICATIONS": true
         }
     },
-    "google_auth": {
+    "GOOGLE_AUTH": {
         "client_id": "763831980100-jla6gkspnss9vqkc13kblqe9mjht0ib1.apps.googleusercontent.com",
         "project_id": "long-base-402902",
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",

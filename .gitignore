@@ -11,3 +11,4 @@ package-lock.json
 .pycache
 ```
 __pycache__
+/params

@@ -1,21 +1,11 @@
 import mysql.connector
-import json
+from database import db_app
 
-# from layers.utils.tools import load_credentials
+params = db_app.enviroment_variables
 
-params_route = "Project/params/develop.json"
-
-import json
-
-
-def load_credentials(credentials_file):
-    with open(credentials_file, "r") as file:
-        return json.load(file)
-
-
-class MySQLDatabaseHandler:
+class MySQLHandler:
     def __init__(self, database_name=None):
-        self.credentials = load_credentials(params_route)["DB_CONFIG"]
+        self.credentials = params["DB_CONFIG"]
         self.database_name = database_name
         self.connection = self.connect()
         self.base_creation()
@@ -58,24 +48,17 @@ class MySQLDatabaseHandler:
             "DATABASES"
         ]  # lista de bases de datos desde el JSON
 
-        for db_name, db_config in databases.items():
-            charset = db_config.get(
-                "charset", "utf8"
-            )  # Usa el charset o usa un valor predeterminado si no está definido
-            collation = db_config.get(
-                "collation", "utf8_unicode_ci"
-            )  # Usa la collation o usa un valor predeterminado si no está definido
-
+        for db_name in databases:
             try:
                 cursor.execute(f"SHOW DATABASES LIKE '{db_name}'")
                 existing_db = cursor.fetchone()
 
                 if existing_db is None:
                     cursor.execute(
-                        f"CREATE DATABASE {db_name} CHARACTER SET {charset} COLLATE {collation}"
+                        f"CREATE DATABASE {db_name} CHARACTER SET utf8 COLLATE utf8_unicode_ci"
                     )
                     print(
-                        f"Base de datos '{db_name}' creada exitosamente con charset: {charset}, collation: {collation}."
+                        f"Base de datos '{db_name}' creada exitosamente con charset: utf8, collation: utf8_unicode_ci."
                     )
                 else:
                     return
@@ -94,44 +77,32 @@ class MySQLDatabaseHandler:
                 cursor.execute(query, data)
             else:
                 cursor.execute(query)
-            self.connection.commit()
-            return cursor
+            result = cursor.fetchall()  # Leer resultados
+            return result
         except mysql.connector.Error as err:
-            print(f"Error: {err}")
+            # Manejo de errores
             self.connection.rollback()
         finally:
             cursor.close()
 
+
     def get_tables(self):
         query = "SHOW TABLES"
-        cursor = self.query(query)
-        if cursor:
-            return [table[0] for table in cursor]
+        result = self.query(query)
+        if result:
+            return [table[0] for table in result]
         return None
 
     def set_table(self, table_name):
         self.current_table = table_name
 
-    def get_item(self, key):
-        query = f"SELECT * FROM {self.current_table} WHERE id = %s"
-        cursor = self.query(query, (key,))
-        return cursor.fetchone()
-
-    def set_item(self, key, data):
-        query = f"INSERT INTO {self.current_table} (id, data) VALUES (%s, %s)"
-        self.query(query, (key, data))
-
-    def query_items(self, query):
-        cursor = self.query(query)
-        return cursor.fetchall()
-
-    def update_item(self, key, data):
-        query = f"UPDATE {self.current_table} SET data = %s WHERE id = %s"
-        self.query(query, (data, key))
-
-
     def create_table(
-        self, table_name, partition_key, sort_key=None, attributes=None, ttl_attribute=None
+        self,
+        table_name,
+        partition_key,
+        sort_key=None,
+        attributes=None,
+        ttl_attribute=None,
     ):
         # Check if the table already exists
         check_tables = self.get_tables()
@@ -164,7 +135,6 @@ class MySQLDatabaseHandler:
 
             # Execute the query to create the table
             self.query(create_table_query)
-            print(f"Table '{table_name}' created successfully.")
 
     def get_config_value(self, key):
         query = f"SELECT value FROM config WHERE key = %s", (key,)

@@ -1,35 +1,30 @@
-from flask import Flask
-from flask_cors import CORS
+from flask import Flask, session
 from flask_oauthlib.client import OAuth
-from flask_sqlalchemy import SQLAlchemy
-from stacks.database.functions.mysql_handler import MySQLDatabaseHandler
+from database.mysql.index import MySQLHandler
+from database.sqlalchemy.index import SQLAlchemyHandler
+from resources import IntegratorResources
 
 
 class AuthStack:
-    def __init__(self, app: Flask):
-        self.app = app
-        self.mysql = MySQLDatabaseHandler(database_name="Auth_db")
-        
-        # Configuración de Flask
-        app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:42886236@localhost/auth_db"
-        app.secret_key = "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"
-        
-        self.db = SQLAlchemy(app)
+    def __init__(self, app: Flask = None):
+        # Access to the parameters resources
+        resources = IntegratorResources()
+
+        # Flask OAUTH
         self.oauth = OAuth(app)
+        
+        # SQLAlchemy Handler
+        self.sqlalchemy = SQLAlchemyHandler()
+        self.db_session = self.sqlalchemy.connect("VOTECHAIN")
 
-        # Configuración de Google OAuth
-        app.config[
-            "GOOGLE_ID"
-        ] = "763831980100-jla6gkspnss9vqkc13kblqe9mjht0ib1.apps.googleusercontent.com"
-        app.config["GOOGLE_SECRET"] = "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"
-        app.config["GOOGLE_REDIRECT_URI"] = "/google/login/authorized"
-
+        # Google instance
         self.google = self.oauth.remote_app(
             "google",
-            consumer_key=app.config["GOOGLE_ID"],
-            consumer_secret=app.config["GOOGLE_SECRET"],
+            consumer_key=resources.params["GOOGLE_AUTH"]["client_id"],
+            consumer_secret=resources.params["GOOGLE_AUTH"]["client_secret"],
+            # Solicitar acceso al correo electrónico y al perfil del usuario
             request_token_params={
-                "scope": "email profile",  # Solicitar acceso al correo electrónico y al perfil del usuario
+                "scope": "email profile",
             },
             base_url="https://www.googleapis.com/oauth2/v1/",
             request_token_url=None,
@@ -38,42 +33,29 @@ class AuthStack:
             authorize_url="https://accounts.google.com/o/oauth2/auth",
         )
 
-        # Configuración de tablas de base de datos
-        self.google_users = self.mysql.create_table(
-            table_name="google_users",
-            partition_key="google_id",
-            sort_key="email",
-            attributes=["verified_email", "name", "surname", "picture"],
-        )
+        @self.google.tokengetter
+        def get_google_oauth_token():
+            return session.get("google_token")
 
-        self.votechain_users = self.mysql.create_table(
-            table_name="votechain_users",
-            partition_key="id",
-            sort_key="email",
-            attributes=[
-                "name",
-                "surname",
-                "picture",
-                "dni",
-                "telefono",
-                "public_key",
-                "private_key",
-            ],
-        )
+# Create Votechain database connection
+mysql_votechain = MySQLHandler("VOTECHAIN")
 
-app = Flask(__name__)
-CORS(app)
-auth_app = AuthStack(app)
+google_users = mysql_votechain.create_table(
+    table_name="google_users",
+    partition_key="google_id",
+    sort_key="email",
+    attributes=["verified_email", "name", "surname", "picture"],
+)
 
-from stacks.auth.functions.google_auth.index import google_auth
-from stacks.auth.functions.votechain_auth.index import votechain_auth
-
-# Pasa la instancia de auth_app al blueprint google_auth
-google_auth.auth_app = auth_app
-
-app.register_blueprint(google_auth)
-app.register_blueprint(votechain_auth)
-
-
-def create_auth_app():
-    return app
+votechain_users = mysql_votechain.create_table(
+    table_name="votechain_users",
+    partition_key="id",
+    sort_key="email",
+    attributes=[
+        "name",
+        "surname",
+        "picture",
+        "dni",
+        "telefono",
+    ],
+)
