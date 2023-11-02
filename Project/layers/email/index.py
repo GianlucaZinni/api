@@ -26,13 +26,13 @@ def enviar_correo(votechain_data, google_data, codigo):
     mensaje = MIMEMultipart()
     mensaje["From"] = correo_emisor
     mensaje["To"] = correo_destino
-    mensaje["Subject"] = "Código de verificación - Votechain"
+    mensaje["Subject"] = "Código de verificación - Votechain"  # Configura el asunto aquí
 
     # Crear una parte de texto en formato HTML
-    mensaje_html = MIMEText(mensaje_html, "html")
+    mensaje_texto = MIMEText(mensaje_html, "html")
 
     # Adjuntar la parte HTML al mensaje
-    mensaje.attach(mensaje_html)
+    mensaje.attach(mensaje_texto)
 
     # Configuración de los datos del servidor SMTP y cuenta de correo emisora
     servidor_smtp = "smtp.gmail.com"
@@ -44,7 +44,7 @@ def enviar_correo(votechain_data, google_data, codigo):
     server.login(correo_emisor, contraseña_emisor)
 
     # Enviar el correo
-    server.sendmail(correo_emisor, correo_destino, mensaje_html.as_string())
+    server.sendmail(correo_emisor, correo_destino, mensaje.as_string())  # Usa 'mensaje' en lugar de 'mensaje_html'
 
     # Cerrar la conexión
     server.quit()
