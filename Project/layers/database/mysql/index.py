@@ -1,5 +1,6 @@
 import mysql.connector
-from database import db_app
+from Project.database import db_app
+from os import getenv
 
 params = db_app.enviroment_variables
 
@@ -14,18 +15,18 @@ class MySQLHandler:
         try:
             if self.database_name:
                 connection = mysql.connector.connect(
-                    host=self.credentials["GENERAL"]["HOST"],
-                    user=self.credentials["GENERAL"]["USERNAME"],
-                    password=self.credentials["GENERAL"]["PASSWORD"],
+                    host=getenv("MYSQL_HOST"),
+                    user=getenv("MYSQL_USER"),
+                    password=getenv("MYSQL_PASSWORD"),
                     database=self.database_name,
                 )
                 return connection
 
             else:
                 connection = mysql.connector.connect(
-                    host=self.credentials["GENERAL"]["HOST"],
-                    user=self.credentials["GENERAL"]["USERNAME"],
-                    password=self.credentials["GENERAL"]["PASSWORD"],
+                    host=getenv("MYSQL_HOST"),
+                    user=getenv("MYSQL_USER"),
+                    password=getenv("MYSQL_PASSWORD"),
                 )
                 return connection
         except mysql.connector.Error as err:

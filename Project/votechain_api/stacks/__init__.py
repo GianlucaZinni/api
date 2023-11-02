@@ -1,12 +1,12 @@
 from flask import Flask
-from votechain_api.stacks.auth import AuthStack
-from votechain_api.stacks.vote import VoteStack
+from votechain_api.stacks.api import ApiStack
+from votechain_api.stacks.controller import ControllerStack
+
 
 class Votechain:
     def __init__(self, app: Flask):
-
         # Initialize the application
         self.app = app
-        
-        self.auth = AuthStack(app)
-        self.vote = VoteStack(app)
+
+        self.api = ApiStack(app)
+        self.controller = ControllerStack(app)

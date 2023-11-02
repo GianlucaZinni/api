@@ -1,20 +1,46 @@
-from flask import redirect, url_for, session
+from flask import redirect, url_for, session, request, jsonify
 from functools import wraps
-from votechain_api.stacks.auth import AuthStack
-from votechain_api.stacks.auth.models import VotechainUsers
+from votechain_api.stacks.api import api
+from votechain_api.stacks.controller import controller
+from layers.database.sqlalchemy.models import VotechainUser, GoogleUser
 
-auth = AuthStack()
-db_session = auth.db_session
+db_session = controller.db_session
+
+
+def google_token_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        authorization_header = request.headers.get("Authorization")
+        if not (authorization_header and authorization_header.startswith("Bearer ")):
+            return jsonify({"error": "Solicitud no válida. Sin Token."}), 400
+
+        if authorization_header.split(" ")[1] != session.get("google_token"):
+            return jsonify({"error": "Unauthorized. Token no válido"}), 401
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 
 def google_login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if "google_token" in session:
-            return f(*args, **kwargs)
-        else:
-            # Redirige al usuario a la página de inicio de sesión de Google.
-            return redirect(url_for("Auth-google_auth.google_login"))
+            user_data = api.google_key.get("userinfo").data
+
+            if user_data.get("error"):
+                return redirect(url_for("API-GOOGLE_AUTH.google_login"))
+
+            google_user = (
+                db_session.query(GoogleUser)
+                .filter_by(id_google=user_data["id"])
+                .first()
+            )
+
+            if not google_user:
+                return redirect(url_for("API-GOOGLE_AUTH.google_login"))
+            return f(google_user, *args, **kwargs)
+
+        return redirect(url_for("API-GOOGLE_AUTH.google_login"))
 
     return decorated_function
 
@@ -22,21 +48,38 @@ def google_login_required(f):
 def votechain_register_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Verifica si el usuario está autenticado en Votechain
-        if "google_token" not in session:
-            return redirect(url_for("Auth-google_auth.google_login"))
+        user_data = api.google_key.get("userinfo").data
+        if not user_data.get("error"):
+            votechain_user = (
+                db_session.query(VotechainUser)
+                .filter_by(id_google=user_data["id"])
+                .first()
+            )
+            if not votechain_user:
+                return redirect(url_for("API-VOTE_AUTH.register"))
+            return f(votechain_user, *args, **kwargs)
+        return redirect(url_for("API-GOOGLE_AUTH.google_login"))
 
-        user_info = auth.google.get("userinfo")
-        user_data = user_info.data
+    return decorated_function
 
-        # Verifica si el usuario ya existe en la base de datos de Votechain
-        user = db_session.query(VotechainUsers).filter_by(id=user_data["id"]).first()
 
-        if user:
-            # Si el usuario ya está registrado, permite el acceso a la función original.
-            return f(*args, **kwargs)
-        else:
-            # Si el usuario no está registrado, redirige a la página de registro de Votechain.
-            return redirect(url_for("Auth-votechain_auth.votechain_register"))
+def check_actually_register(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        
+        if "google_token" in session:
+            user_data = api.google_key.get("userinfo").data
+            if not user_data.get("error"):
+                # Verifica si el usuario ya está registrado en la base de datos
+                user = (
+                    db_session.query(VotechainUser).filter_by(id_google=user_data["id"]).first()
+                )
+                if user:
+                    # Si el usuario ya está registrado, redirige a la página de userinfo
+                    return redirect(url_for("API-VOTE_AUTH.person_info"))
 
+                return redirect(url_for("API-VOTE_AUTH.register"))
+
+        return f(*args, **kwargs)
+            
     return decorated_function

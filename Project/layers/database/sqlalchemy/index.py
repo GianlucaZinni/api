@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from database import db_app
+from layers.database import db_app
 
 params = db_app.enviroment_variables
 

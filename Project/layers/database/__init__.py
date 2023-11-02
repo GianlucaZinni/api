@@ -1,4 +1,4 @@
-from resources import IntegratorResources
+from layers.resources import IntegratorResources
 
 
 class DatabaseStack:

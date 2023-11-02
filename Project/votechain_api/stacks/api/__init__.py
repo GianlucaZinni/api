@@ -1,53 +1,39 @@
-from flask import Flask
-# from flask_restplus import Api
-# from api.functions.token.index import Token
-from votechain_layers.persistence.create_schemas import create_table
+from flask import Flask, session
+from flask_oauthlib.client import OAuth
+import os
+from layers.resources import IntegratorResources
 
-# api = Api(
-#     title="VoteChain API",
-#     version="1.0",
-# )
 
 class ApiStack:
-    def __init__(self, app: Flask):
-        self.app = app
+    def __init__(self, app: Flask = None):
+        # Access to the parameters resources
+        resources = IntegratorResources()
 
-        # Configuración de tablas de base de datos
-        self.tokens_table = create_table(
-            table_name="tokens",
-            partition_key="token",
-            sort_key="app_id",
-            ttl_attribute="expires"
+        # Flask OAUTH
+        self.oauth = OAuth(app)
+
+        # SQLAlchemy Handler
+        self.count_nro_tramite = 4
+        self.message = ""
+        self.message_email = ""
+
+        # Google instance
+        self.google_key = self.oauth.remote_app(
+            "google",
+            consumer_key=os.getenv("GOOGLE-CLIENT_ID"),
+            consumer_secret=os.getenv("GOOGLE-CLIENT_SECRET"),
+            request_token_params={
+                "scope": "email profile",
+            },
+            base_url="https://www.googleapis.com/oauth2/v1/",
+            request_token_url=None,
+            access_token_method="POST",
+            access_token_url="https://accounts.google.com/o/oauth2/token",
+            authorize_url="https://accounts.google.com/o/oauth2/auth",
         )
 
-        self.clients_table = create_table(
-            table_name="clients",
-            partition_key="app_id",
-            sort_key="username"
-        )
+        @self.google_key.tokengetter
+        def get_google_oauth_token():
+            return session.get("google_token")
 
-        self.resources_permissions_table = create_table(
-            table_name="resources_permissions",
-            partition_key="method_resource",
-            sort_key="permission"
-        )
-
-        self.clients_permissions_table = create_table(
-            table_name="clients_permissions",
-            partition_key="app_id",
-            sort_key="permission"
-        )
-        # self.configure_database_tables()
-
-        # Configuración de modelos
-        # self.token_model = api.model(
-        #     self,
-        #     "api-token-model",
-        #     {
-        #         "access_token": fields.String(required=True),
-        #         "token_type": fields.String(required=True),
-        #         "expires_in": fields.Integer(required=True),
-        #     }
-        # )
-        
-        # api.add_namespace(Token)
+api = ApiStack()

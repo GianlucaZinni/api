@@ -1,5 +1,5 @@
 from flask import Flask
-from stacks.database.functions.mysql_handler import MySQLDatabaseHandler
+from layers.database.functions.mysql_handler import MySQLDatabaseHandler
 
 class SignatureStack:
     def __init__(self, app: Flask):
