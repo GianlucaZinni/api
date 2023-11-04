@@ -1,6 +1,6 @@
 import random
 from datetime import datetime, timedelta
-from votechain_api.stacks.controller import controller
+from votechain_api.stacks.controller import controller, sql_add, sql_delete
 from layers.database.sqlalchemy.models import EmailVerification, Auditory
 from Project.layers.email.index import enviar_correo
 
@@ -33,8 +33,7 @@ def generate_eightdigits_code(DNI, id_google):
         id_google=id_google,
         DNI=DNI,
     )
-    db_session.add(code)
-    db_session.commit()
+    sql_add(db_session, code)
     return code
 
 
@@ -61,28 +60,24 @@ def get_email_code(votechain_user, google_user):
     return code
 
 
-def post_email_code(votechain_user, google_user, code, check_tries, user_input):
-    if check_tries > 0:
+def post_email_code(votechain_user, google_user, code, user_input):
+    if code.tries > 1:
         if int(code.code) == int(user_input):
             auditory = Auditory(
                 DNI=votechain_user.DNI,
                 enabled=True,
                 enabled_date=datetime.now(),
             )
-            db_session.add(auditory)
-            db_session.delete(code)
-            db_session.commit()
+            sql_add(db_session, auditory)
+            sql_delete(db_session, code)
 
             return "success"
 
         code.tries = code.tries - 1
-        db_session.add(code)
-        db_session.commit()
+        sql_add(db_session, code)
         return "invalid"
 
-    db_session.delete(code)
-    db_session.delete(votechain_user)
-    db_session.delete(google_user)
-    db_session.commit()
-    db_session.close()
+    sql_delete(db_session, code)
+    sql_delete(db_session, votechain_user)
+    sql_delete(db_session, google_user)
     return "no-tries"

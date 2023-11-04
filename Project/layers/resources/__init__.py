@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 # Carga las variables de entorno desde el archivo .env
 load_dotenv()
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-print(root)
 
 class IntegratorResources:
     

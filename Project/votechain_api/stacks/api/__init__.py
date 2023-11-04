@@ -13,9 +13,8 @@ class ApiStack:
         self.oauth = OAuth(app)
 
         # SQLAlchemy Handler
-        self.count_nro_tramite = 4
-        self.message = ""
-        self.message_email = ""
+        self.message_info = ""
+        self.message_email = "3"
 
         # Google instance
         self.google_key = self.oauth.remote_app(
@@ -35,5 +34,6 @@ class ApiStack:
         @self.google_key.tokengetter
         def get_google_oauth_token():
             return session.get("google_token")
+
 
 api = ApiStack()

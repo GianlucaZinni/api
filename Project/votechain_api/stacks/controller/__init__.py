@@ -15,4 +15,14 @@ class ControllerStack:
         self.db_session_renaper = self.sqlalchemy.connect("RENAPER")
 
 
+def sql_add(db_session, register):
+    db_session.add(register)
+    db_session.commit()
+
+
+def sql_delete(db_session, register):
+    db_session.delete(register)
+    db_session.commit()
+
+
 controller = ControllerStack()

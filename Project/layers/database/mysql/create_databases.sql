@@ -27,6 +27,7 @@ CREATE TABLE
         apellido VARCHAR(255) NOT NULL,
         telefono VARCHAR(15) NOT NULL,
         nro_tramite BIGINT,
+        tries INT NOT NULL, 
         FOREIGN KEY (id_google) REFERENCES google_user(id_google),
         UNIQUE KEY (DNI)
     );

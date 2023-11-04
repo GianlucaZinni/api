@@ -30,6 +30,7 @@ class VotechainUser(Base):
     apellido = Column(String(255), nullable=False)
     telefono = Column(String(15), nullable=False)
     nro_tramite = Column(BigInteger)
+    tries = Column(Integer, nullable=False, default=3)
     
     def __repr__(self):
         return f"<Votechain User {self.nombre}, DNI: {self.DNI}>"
@@ -59,7 +60,7 @@ class Auditory(Base):
 
     
     def __repr__(self):
-        return f"<Email Verification {self.code}, tiempo restante: {self.expiration_time}>"
+        return f"<Email Verification {self.DNI}, tiempo restante: {self.enabled}>"
 
 
 # Modelo para la tabla Padrón en la base de datos RENAPER
@@ -71,3 +72,6 @@ class Padron(Base):
     apellido = Column(String(255), nullable=False)
     nro_tramite = Column(BigInteger, nullable=False)
     valid = Column(Boolean, nullable=False)
+    
+    def __repr__(self):
+        return f"<Email Verification {self.DNI}, tiempo restante: {self.nro_tramite}, tries: {self.tries}>"

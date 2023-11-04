@@ -1,72 +1,59 @@
-from flask import redirect, url_for, render_template_string, Blueprint, jsonify, request, session
-from layers.database.sqlalchemy.models import VotechainUser
+from flask import (
+    redirect,
+    url_for,
+    render_template_string,
+    Blueprint,
+    jsonify,
+    request,
+    session,
+)
 from votechain_api.stacks.api import api
-from votechain_api.stacks.controller import controller
 from votechain_api.access import (
     google_login_required,
-    google_token_required,
     votechain_register_required,
 )
 from votechain_api.stacks.controller.functions.renaper.index import (
     verificar_en_padron,
-    verificar_nro_tramite,
+    obtener_individuo_renaper,
+)
+from votechain_api.stacks.controller.functions.vote_auth.index import (
+    check_already_register,
+    check_dni_already_exists,
+    insert_into_votechain,
+    post_nro_tramite,
 )
 
 vote_auth = Blueprint("API-VOTE_AUTH", __name__)
 
-db_session = controller.db_session
 
 @vote_auth.route("/votechain/register", methods=["GET", "POST"])
 @google_login_required
 def register(google_user):
-    if (
-        db_session.query(VotechainUser)
-        .filter_by(id_google=google_user.id_google)
-        .first()
-    ):
-        return redirect(url_for("API-VOTE_AUTH.person_info"))
+    if check_already_register(google_user):
+        return redirect(url_for("API-VOTE_AUTH.persona_info"))
 
     if request.method == "POST":
         persona_data = request.form
 
         if not persona_data:
-            return jsonify({"error": "Solicitud no válida"}), 400
-
-        dni = persona_data.get("dni")
+            return jsonify({"error": "No data sent."}), 400
 
         verification_result = verificar_en_padron(persona_data)
 
         if verification_result:
-            # Verifica que no exista un individuo ya registrado con el mismo id_google
-            if (
-                db_session.query(VotechainUser)
-                .filter_by(id_google=google_user.id_google)
-                .first()
-            ):
-                return jsonify({"message": "Ya estás registrado."}), 200
+            if not check_dni_already_exists(persona_data):
+                insert_into_votechain(persona_data, google_user.id_google)
 
-            # Verifica si el usuario ya existe en la base de datos
-            if db_session.query(VotechainUser).filter_by(DNI=dni).first():
-                return (
-                    jsonify(
-                        {
-                            "message": "El DNI ya está registrado a una cuenta de email distinta."
-                        }
-                    ),
-                    400,
-                )
+                return redirect(url_for("API-VOTE_AUTH.persona_info"))
 
-            votechain_user = VotechainUser(
-                DNI=dni,
-                id_google=google_user.id_google,
-                nombre=persona_data.get("nombre"),
-                apellido=persona_data.get("apellido"),
-                telefono=persona_data.get("telefono"),
+            return (
+                jsonify(
+                    {
+                        "message": "El DNI ya está registrado a una cuenta de email distinta."
+                    }
+                ),
+                400,
             )
-            db_session.add(votechain_user)
-            db_session.commit()
-            db_session.close()
-            return redirect(url_for("API-VOTE_AUTH.person_info"))
 
         if verification_result is False:
             return (
@@ -112,41 +99,36 @@ def register(google_user):
     return render_template_string(html)
 
 
-@vote_auth.route("/votechain/person_info", methods=["GET", "POST"])
+@vote_auth.route("/votechain/persona_info", methods=["GET", "POST"])
 @google_login_required
 @votechain_register_required
-def person_info(votechain_user, google_user):
-    valid_nro_tramite, nro_tramite = verificar_nro_tramite(votechain_user)
-    if api.count_nro_tramite <= 0:
-        db_session.delete(votechain_user)
-        db_session.delete(google_user)
-        db_session.commit()
-        db_session.close()
-        api.count_nro_tramite = 4
-        api.message = ""
-        return redirect(url_for("API-GOOGLE_AUTH.logout"))
-    
-    validation_message = ""
-    if not votechain_user.nro_tramite:
-        if request.method == "POST":
-            if str(request.form["nro_tramite"]) == str(nro_tramite):
-                votechain_user.nro_tramite = request.form["nro_tramite"]
-                db_session.add(votechain_user)
-                db_session.commit()
-                db_session.close()
-                return redirect(url_for("API-VOTE_AUTH.person_info"))
-            api.count_nro_tramite -= 1
-            api.message = f"Nro de trámite inválido. Cantidad de intentos restantes {controller.count_nro_tramite}"
-            return redirect(url_for("API-VOTE_AUTH.person_info"))
+def persona_info(votechain_user, google_user):
+    individuo_renaper = obtener_individuo_renaper(votechain_user)
+    if request.method == "POST":
+        response = post_nro_tramite(
+            votechain_user,
+            google_user,
+            individuo_renaper,
+            request.form.get("nro_tramite"),
+        )
 
-    else:
-        if valid_nro_tramite:
+        if response == "success":
+            return redirect(url_for("API-VOTE_AUTH.persona_info"))
+
+        elif response == "invalid":
+            api.message_info = f"Nro de trámite inválido. Cantidad de intentos restantes {votechain_user.tries}"
+            return redirect(url_for("API-VOTE_AUTH.persona_info"))
+
+        elif response == "no-tries":
+            return redirect(url_for("API-VOTE_AUTH.exceeded_tries"))
+
+    if individuo_renaper:
+        api.message_info = votechain_user.tries
+        if individuo_renaper.valid:
             validation_message = "Válido para votar."
-            api.message = ""
 
         else:
             validation_message = "No válido para votar."
-            api.message = ""
 
     html = """
         <!DOCTYPE html>
@@ -165,7 +147,9 @@ def person_info(votechain_user, google_user):
             <p for="telefono" value="{{ votechain_user.telefono }}">Teléfono: {{ votechain_user.telefono }} </p>
 
             {% if votechain_user.nro_tramite %}
-                <label for="nro_tramite">Número de Trámite: {{ nro_tramite }} {{ validation_message }} </label>
+                <label for="nro_tramite">Número de Trámite: {{ votechain_user.nro_tramite }} </label>
+                <br><br>
+                <label> {{ validation_message }} </label>
                 <br>
                 <br>
                 {% if validation_message == "Válido para votar." %}
@@ -177,13 +161,11 @@ def person_info(votechain_user, google_user):
                     <input type="text" name="nro_tramite" id="nro_tramite">
                     <button type="submit">Enviar</button>
                 </form>
+                {% if message %}
+                    <br>
+                    <label value="{{ message }}"> Cantidad de intentos restantes: {{ message }} </label>
+                {% endif %}
             {% endif %}
-                        
-            {% if message %}
-                <br>
-                <label value="{{ message }}"> {{ message }} </label>
-            {% endif %}
-        
         </body>
         </html>
     """
@@ -192,5 +174,25 @@ def person_info(votechain_user, google_user):
         votechain_user=votechain_user,
         google_user=google_user,
         validation_message=validation_message,
-        message=api.message,
+        message=api.message_info,
     )
+
+
+@vote_auth.route("/votechain/exceeded", methods=["GET"])
+def exceeded_tries():
+    session.clear()
+    html = """
+        <!DOCTYPE html>
+        <html>
+
+        <head>
+            <title>Códigos excedidos</title>
+        </head>
+
+        <body>
+            <h1>Has excedido la cantidad de intentos</h1>
+            <a href="{{ url_for("API-GOOGLE_AUTH.index") }}"><button>Volver al inicio</button></a>
+        </body>
+        </html>
+    """
+    return render_template_string(html)

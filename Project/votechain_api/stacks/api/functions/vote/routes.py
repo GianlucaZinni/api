@@ -1,36 +1,58 @@
-from flask import Blueprint, render_template_string, request, redirect, url_for, jsonify, session
+from flask import (
+    Blueprint,
+    render_template_string,
+    request,
+    redirect,
+    url_for,
+    session,
+)
 from votechain_api.stacks.api import api
-from Project.votechain_api.stacks.controller.functions.email.index import clean_expired_verification_codes, get_email_code, post_email_code
-from votechain_api.access import google_login_required, votechain_register_required
+from Project.votechain_api.stacks.controller.functions.email.index import (
+    clean_expired_verification_codes,
+    get_email_code,
+    post_email_code,
+)
+from Project.votechain_api.stacks.controller.functions.vote.index import post_vote
+from votechain_api.access import (
+    google_login_required,
+    votechain_register_required,
+    verify_actually_audit,
+    verify_actually_vote
+)
 
 vote = Blueprint("API-VOTE", __name__)
+
 
 @vote.route("/votechain/validar_codigo", methods=["GET", "POST"])
 @google_login_required
 @votechain_register_required
+@verify_actually_audit
 def validar_codigo(votechain_user, google_user):
-    
     clean_expired_verification_codes()
-    
+
     code = get_email_code(votechain_user, google_user)
     if request.method == "POST":
-        response = post_email_code(votechain_user, google_user, code, code.tries, request.form.get("verification_code"))
+        response = post_email_code(
+            votechain_user, google_user, code, request.form.get("verification_code")
+        )
 
         if response == "success":
             return redirect(url_for("API-VOTE.candidatos"))
-            
+
         elif response == "invalid":
-            api.message_email = code.tries
+            api.message_email = (
+                f"Nro de trámite inválido. Cantidad de intentos restantes {code.tries}"
+            )
             return redirect(url_for("API-VOTE.validar_codigo"))
-        
+
         elif response == "no-tries":
             session.clear()
-            return redirect(url_for("API-GOOGLE_AUTH.index"))
+            return redirect(url_for("API-VOTE_AUTH.exceeded_tries"))
 
     # Genera y envía un código de verificación al usuario
     if code:
         api.message_email = code.tries
-        
+
     html = """
     <!DOCTYPE html>
     <html>
@@ -43,7 +65,10 @@ def validar_codigo(votechain_user, google_user):
             <input type="text" name="verification_code" placeholder="Código de verificación" required>
             <button type="submit">Verificar</button>
         </form>
-        <p> {{ message }} </p>
+        {% if message %}
+            <br>
+            <label value="{{ message }}"> Cantidad de intentos restantes: {{ message }} </label>
+        {% endif %}
     </body>
     </html>
     """
@@ -54,6 +79,7 @@ def validar_codigo(votechain_user, google_user):
 @vote.route("/votechain/candidatos", methods=["GET"])
 @google_login_required
 @votechain_register_required
+@verify_actually_vote
 def candidatos(votechain_user, google_user):
     # Crear el formulario HTML con tres botones
     form_html = """
@@ -71,14 +97,36 @@ def candidatos(votechain_user, google_user):
 @vote.route("/votechain/votar", methods=["POST"])
 @google_login_required
 @votechain_register_required
+@verify_actually_vote
 def votar(votechain_user, google_user):
     # Recibir y procesar los datos del formulario
     candidato_votado = request.form.get("voto")
+    
+    if request.method == "POST":
+        post_vote(votechain_user)
+        
+        # FALTA LA LÓGICA DE POST HACIA EL REPO DE CORE
+        
+        return redirect(url_for("API-VOTE.votado"))
+        
 
-    # Puedes imprimir o manejar los datos del candidato votado
-    print(f"Usuario {votechain_user.DNI} votó por {candidato_votado}")
 
-    # Realizar más acciones según el candidato votado
+@vote.route("/votechain/votado", methods=["GET"])
+@google_login_required
+@votechain_register_required
+def votado(votechain_user, google_user):
+    # Crear el formulario HTML con tres botones
+    form_html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>VOTACION REALIZADA</title>
+    </head>
+    <body>
+        <h1>Felicidades, ya votaste maestro!</h1>
+    </body>
+    </html>
+    """
 
-    # Devolver una respuesta al usuario
-    return jsonify({"message": "Voto registrado exitosamente"})
+    # Renderizar el formulario
+    return render_template_string(form_html)

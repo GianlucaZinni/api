@@ -1,5 +1,9 @@
 import mysql.connector
 import os
+import random
+from faker import Faker
+
+fake = Faker("es_ES")
 
 def create_databases():
     # Conectarse a la base de datos MySQL
@@ -35,3 +39,33 @@ def create_databases():
     connection.commit()
     cursor.close()
     connection.close()
+
+
+def create_renaper_data(activate=False):
+    if activate:
+        # Conectarse a la base de datos MySQL
+        connection = mysql.connector.connect(
+            host=os.getenv("MYSQL_HOST"),
+            user=os.getenv("MYSQL_USER"),
+            password=os.getenv("MYSQL_PASSWORD"),
+            database="RENAPER"
+        )
+
+        cursor = connection.cursor()
+
+        # Genera y ejecuta las consultas SQL para insertar los registros falsos
+        for _ in range(300):
+            dni = random.randint(24000000, 99999999)
+            nombre = fake.first_name()
+            apellido = fake.last_name()
+            nro_tramite = int("20" + str(dni) + "9")
+            valid = random.choice([1] * 80 + [0] * 20)  # 80% válido, 20% no válido
+
+            sql = "INSERT INTO Padron (DNI, nombre, apellido, nro_tramite, valid) VALUES (%s, %s, %s, %s, %s)"
+            values = (dni, nombre, apellido, nro_tramite, valid)
+            cursor.execute(sql, values)
+
+        # Confirmar los cambios y cerrar la conexión
+        connection.commit()
+        cursor.close()
+        connection.close()

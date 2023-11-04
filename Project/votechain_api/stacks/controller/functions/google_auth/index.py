@@ -1,4 +1,4 @@
-from votechain_api.stacks.controller import controller
+from votechain_api.stacks.controller import controller, sql_add
 from layers.database.sqlalchemy.models import GoogleUser
 
 db_session = controller.db_session
@@ -14,5 +14,5 @@ def save_google_user(user_data):
             verified_email=user_data.get("verified_email"),
             picture=user_data.get("picture", ""),
         )
-        db_session.add(user)
+        sql_add(db_session, user)
         db_session.commit()

@@ -11,7 +11,7 @@ def create_app(config_class=Config):
     # Flask app object
     app = Flask(__name__)
     app.config.from_object(config_class)
-    
+
     CORS(app)
     Session(app)
 
