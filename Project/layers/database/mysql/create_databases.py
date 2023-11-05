@@ -54,7 +54,7 @@ def create_renaper_data(activate=False):
         cursor = connection.cursor()
 
         # Genera y ejecuta las consultas SQL para insertar los registros falsos
-        for _ in range(300):
+        for _ in range(50):
             dni = random.randint(24000000, 99999999)
             nombre = fake.first_name()
             apellido = fake.last_name()
