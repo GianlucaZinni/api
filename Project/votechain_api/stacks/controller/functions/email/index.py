@@ -8,12 +8,14 @@ db_session = controller.db_session
 
 
 def clean_expired_verification_codes():
-    expiration_limit = datetime.now().replace(microsecond=0) - timedelta(seconds=300)
+    expiration_limit = datetime.now().replace(microsecond=0)
     expired_codes = (
         db_session.query(EmailVerification)
         .filter(EmailVerification.expiration_time <= expiration_limit)
         .all()
     )
+    print(expiration_limit)
+    print(expired_codes)
     for code in expired_codes:
         db_session.delete(code)
 

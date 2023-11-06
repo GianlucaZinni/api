@@ -13,3 +13,4 @@ package-lock.json
 __pycache__
 /params
 /*_session/
+.env

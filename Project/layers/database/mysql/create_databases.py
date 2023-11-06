@@ -5,6 +5,7 @@ from faker import Faker
 
 fake = Faker("es_ES")
 
+
 def create_databases():
     # Conectarse a la base de datos MySQL
     connection = mysql.connector.connect(
@@ -16,7 +17,11 @@ def create_databases():
     cursor = connection.cursor()
 
     # Leer el archivo SQL
-    with open(f"{os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))}\mysql\create_databases.sql", "r", encoding="utf-8") as file:
+    with open(
+        f"{os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))}\mysql\create_databases.sql",
+        "r",
+        encoding="utf-8",
+    ) as file:
         sql_script = file.read()
 
     # Dividir el script en comandos individuales
@@ -28,12 +33,13 @@ def create_databases():
             try:
                 cursor.execute(command)
             except mysql.connector.Error as err:
-                if err.errno == 1050:  # Código de error 1050 indica que la tabla ya existe
+                if (
+                    err.errno == 1050
+                ):  # Código de error 1050 indica que la tabla ya existe
                     pass
                 else:
                     print(f"Error al ejecutar el comando SQL: {command}")
                     print(err)
-
 
     # Confirmar los cambios y cerrar la conexión
     connection.commit()
@@ -48,7 +54,7 @@ def create_renaper_data(activate=False):
             host=os.getenv("MYSQL_HOST"),
             user=os.getenv("MYSQL_USER"),
             password=os.getenv("MYSQL_PASSWORD"),
-            database="RENAPER"
+            database="RENAPER",
         )
 
         cursor = connection.cursor()

@@ -47,9 +47,12 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from Project.votechain_api.stacks.controller.functions.email.index import (
     clean_expired_verification_codes,
 )
+from layers.resources import IntegratorResources
+
+resources = IntegratorResources()
 
 sched = BackgroundScheduler(deamon=True)
-sched.add_job(clean_expired_verification_codes, "interval", seconds=300)
+sched.add_job(clean_expired_verification_codes, "interval", seconds=resources.params["SCHEDULE"]["INTERVAL"])
 sched.start()
 
 if __name__ == "__main__":

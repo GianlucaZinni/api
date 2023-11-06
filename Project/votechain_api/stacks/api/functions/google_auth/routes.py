@@ -44,7 +44,7 @@ def authorized():
     access_token = response.get('access_token')
     print("REPSONSE", response)
     print("ACCESS TOKEN", access_token)
-    return redirect(f"http://localhost:3000/register?token={access_token}")
+    return redirect(url_for("API-VOTE_AUTH.register"))
 
 # Route to log out
 @google_auth.route("/logout", methods=["GET", "POST"])
