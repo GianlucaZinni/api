@@ -2,7 +2,6 @@ from datetime import datetime
 from flask import Blueprint
 from layers.database.sqlalchemy.models import (
     Auditory,
-    PartidoPolitico,
     CandidatosPresiVice,
 )
 from votechain_api.stacks.controller import controller, sql_add

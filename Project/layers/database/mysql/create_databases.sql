@@ -134,6 +134,7 @@ CREATE TABLE
     IF NOT EXISTS PartidoPolitico (
         partido_id INT AUTO_INCREMENT PRIMARY KEY,
         nombre VARCHAR(255) NOT NULL,
+        lista VARCHAR(10),
         siglas VARCHAR(10),
         fundacion DATE,
         logo_url VARCHAR(255),
@@ -147,6 +148,7 @@ INSERT
     IGNORE INTO PartidoPolitico (
         partido_id,
         nombre,
+        lista,
         siglas,
         fundacion,
         logo_url,
@@ -155,6 +157,7 @@ INSERT
 VALUES (
         1,
         'La Libertad Avanza',
+        "135A",
         'LLA',
         '2021-01-01',
         'logo_lla.png',
@@ -162,6 +165,7 @@ VALUES (
     ), (
         2,
         'Unión por la Patria',
+        "134",
         'UP',
         '2003-01-01',
         'logo_up.png',
