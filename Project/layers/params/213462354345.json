@@ -1,31 +1,5 @@
 {
-    "DB_CONFIG": {
-        "GENERAL": {
-            "USERNAME": "root",
-            "PASSWORD": "12341234",
-            "HOST": "localhost"
-        },
-        "DATABASES": [
-            "VOTECHAIN",
-            "TOKENS",
-            "SIGNATURES",
-            "RENAPER"
-        ],
-        "SQLALCHEMY": {
-            "DATABASE_URI": "mysql://root:12341234@localhost/",
-            "TRACK_MODIFICATIONS": false
-        }
-    },
-    "GOOGLE_AUTH": {
-        "project_id": "long-base-402902",
-        "auth_url": "https://accounts.google.com/o/oauth2/auth",
-        "token_url": "https://accounts.google.com/o/oauth2/token",
-        "base_url": "https://www.googleapis.com/oauth2/v1/",
-        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "redirect_uril": [
-            "http://127.0.0.1:5001/callback",
-            "http://127.0.0.1:5001/google/login",
-            "http://127.0.0.1:5001/google/login/authorized"
-        ]
+    "SCHEDULE": {
+        "INTERVAL": 900
     }
 }
