@@ -92,6 +92,7 @@ class PartidoPolitico(Base):
 
     partido_id = Column(Integer, primary_key=True, autoincrement=True)
     nombre = Column(String(255), nullable=False)
+    lista = Column(String(10))
     siglas = Column(String(10))
     fundacion = Column(DateTime)
     logo_url = Column(String(255))

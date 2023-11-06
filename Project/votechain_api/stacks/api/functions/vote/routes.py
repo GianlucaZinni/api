@@ -20,6 +20,7 @@ from votechain_api.access import (
     verify_actually_vote
 )
 import requests
+import json
 
 
 vote = Blueprint("API-VOTE", __name__)
@@ -94,6 +95,7 @@ def candidatos(votechain_user, google_user):
         info_partido = {
             "partido_politico": partido_politico.nombre,
             "siglas": partido_politico.siglas,
+            "lista": partido_politico.lista,
             "presidente": candidato.nombre_presidente + " " + candidato.apellido_presidente,
             "vicepresidente": candidato.nombre_vicepresidente + " " + candidato.apellido_vicepresidente,
             "imagen_boleta": candidato.foto_url,
@@ -104,8 +106,6 @@ def candidatos(votechain_user, google_user):
 
         partidos.append(info_partido)
 
-
-    print(partidos)
     
     form_html = """
         <form method="POST" action="/votechain/votar">
@@ -113,7 +113,7 @@ def candidatos(votechain_user, google_user):
     """
     for partido_politico in partidos:
         form_html += f"""
-        <button type="submit" name="voto" value="{partido_politico.get("partido_id")}">Votar por {partido_politico.get("partido_politico")}</button>
+        <button type="submit" name="voto" value="{partido_politico}">Votar por {partido_politico.get("partido_politico")}</button>
         """
         
     form_html += """
@@ -130,22 +130,24 @@ def candidatos(votechain_user, google_user):
 @verify_actually_vote
 def votar(votechain_user, google_user):
     # Recibir y procesar los datos del formulario
-    candidato_votado = request.form.get("voto")
+    candidato_votado = json.loads(request.form.get("voto").replace("'", "\""))
     
+    print(session)
+    print(candidato_votado)
+
     if request.method == "POST":
-        post_audit_vote(votechain_user)
         
-        # Crear el JSON con los datos que deseas enviar
-        data = {
-            "lista": "135A",
-            "partido": "La Libertad Avanza"
+        voto = {
+            "lista": candidato_votado.get("lista"),
+            "partido": candidato_votado.get("partido_politico")
         }
         
         # Realizar el POST a la ruta especificada
-        response = requests.post("http://127.0.0.1:8000/registrar_voto", json=data)
+        response = requests.post("http://127.0.0.1:8000/registrar_voto", json=voto)
         
         # Comprobar si la solicitud POST fue exitosa
         if response.status_code == 200:
+            post_audit_vote(votechain_user)
             # Si la solicitud fue exitosa, puedes redirigir al usuario a la página deseada
             return redirect(url_for("API-VOTE.votado"))
         else:
