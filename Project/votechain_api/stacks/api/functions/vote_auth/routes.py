@@ -2,9 +2,7 @@ from flask import (
     redirect,
     render_template,
     url_for,
-    render_template_string,
     Blueprint,
-    jsonify,
     request,
     session,
     flash
@@ -33,7 +31,6 @@ vote_auth = Blueprint("API-VOTE_AUTH", __name__)
 def register(google_user):
     if check_already_register(google_user):
         return redirect(url_for("API-VOTE_AUTH.persona_info"))
-
     if request.method == "POST":
         persona_data = request.form
         try:
@@ -108,10 +105,12 @@ def persona_info(votechain_user, google_user):
 
     if individuo_renaper:
         api.message_info = votechain_user.tries
-        if individuo_renaper.valid:
+        if individuo_renaper.valid and votechain_user.nro_tramite:
             validation_message = "Válido para votar."
-        else:
+        elif not individuo_renaper.valid and votechain_user.nro_tramite:
             validation_message = "No válido para votar."
+        else:
+            validation_message = ""
 
     return render_template(
         "user_register/persona_info_votechain.html",
@@ -124,4 +123,4 @@ def persona_info(votechain_user, google_user):
 @vote_auth.route("/votechain/exceeded", methods=["GET"])
 def exceeded_tries():
     session.clear()
-    return render_template("user_register/codigos_excedidos")
+    return render_template("user_register/codigos_excedidos.html")

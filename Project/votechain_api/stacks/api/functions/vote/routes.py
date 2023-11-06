@@ -1,5 +1,6 @@
 from flask import (
     Blueprint,
+    render_template,
     render_template_string,
     request,
     redirect,
@@ -56,38 +57,15 @@ def validar_codigo(votechain_user, google_user):
     if code:
         api.message_email = code.tries
 
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>VOTECHAIN - EMAIL VERIFICATION</title>
-    </head>
-    <body>
-        <h1>Se te ha enviado un código por email, ingrésalo a continuación</h1>
-        <form method="POST">
-            <input type="text" name="verification_code" placeholder="Código de verificación" required>
-            <button type="submit">Verificar</button>
-        </form>
-        {% if message %}
-            <br>
-            <label value="{{ message }}"> Cantidad de intentos restantes: {{ message }} </label>
-        {% endif %}
-    </body>
-    </html>
-    """
-
-    return render_template_string(html, message=api.message_email)
+    return render_template("votaciones/verificar_email.html", message=api.message_email)
 
 
 @vote.route("/votechain/candidatos", methods=["GET"])
 @google_login_required
 @votechain_register_required
 @verify_actually_vote
-def candidatos(votechain_user, google_user):
-    # Crear el formulario HTML con tres botones
-    
-    
-# Ejemplo de cómo obtener candidatos y sus partidos
+def candidatos(votechain_user, google_user): 
+    # Ejemplo de cómo obtener candidatos y sus partidos
     candidatos = get_candidatos()
     partidos = []
     for candidato in candidatos:
@@ -103,25 +81,10 @@ def candidatos(votechain_user, google_user):
             "partido_id": partido_politico.partido_id,
             "candidatos_id": candidato.candidatos_id
         }
-
         partidos.append(info_partido)
 
-    
-    form_html = """
-        <form method="POST" action="/votechain/votar">
-
-    """
-    for partido_politico in partidos:
-        form_html += f"""
-        <button type="submit" name="voto" value="{partido_politico}">Votar por {partido_politico.get("partido_politico")}</button>
-        """
-        
-    form_html += """
-        </form>
-        """
-
-    # Renderizar el formulario
-    return render_template_string(form_html)
+    # Renderizar la plantilla HTML con los partidos
+    return render_template("votaciones/candidatos.html", partidos=partidos)
 
 
 @vote.route("/votechain/votar", methods=["POST"])
@@ -129,49 +92,29 @@ def candidatos(votechain_user, google_user):
 @votechain_register_required
 @verify_actually_vote
 def votar(votechain_user, google_user):
-    # Recibir y procesar los datos del formulario
-    candidato_votado = json.loads(request.form.get("voto").replace("'", "\""))
-    
-    print(session)
-    print(candidato_votado)
-
-    if request.method == "POST":
-        
-        voto = {
-            "lista": candidato_votado.get("lista"),
-            "partido": candidato_votado.get("partido_politico")
-        }
-        
-        # Realizar el POST a la ruta especificada
-        response = requests.post("http://127.0.0.1:8000/registrar_voto", json=voto)
-        
-        # Comprobar si la solicitud POST fue exitosa
-        if response.status_code == 200:
-            post_audit_vote(votechain_user)
-            # Si la solicitud fue exitosa, puedes redirigir al usuario a la página deseada
-            return redirect(url_for("API-VOTE.votado"))
+    try:
+        candidato_votado = request.form.get("voto")
+        if candidato_votado:
+            candidato_votado = json.loads(candidato_votado.replace("'", "\""))
+            voto = {
+                "lista": candidato_votado.get("lista"),
+                "partido": candidato_votado.get("partido_politico")
+            }
+            response = requests.post("http://127.0.0.1:8000/registrar_voto", json=voto)
+            if response.status_code == 200:
+                post_audit_vote(votechain_user)
+                return redirect(url_for("API-VOTE.votado"))
+            else:
+                raise Exception("Error al registrar el voto.")
         else:
-            # Si la solicitud falló, puedes manejar el error de alguna manera
-            # Por ejemplo, puedes mostrar un mensaje de error o redirigir a una página de error
-            return "Error al registrar el voto. Por favor, inténtalo de nuevo."
+            raise ValueError("No se recibió información de voto.")
+    except Exception as e:
+        return f"Error: {e}"
         
 
 @vote.route("/votechain/votado", methods=["GET"])
 @google_login_required
 @votechain_register_required
 def votado(votechain_user, google_user):
-    # Crear el formulario HTML con tres botones
-    form_html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>VOTACION REALIZADA</title>
-    </head>
-    <body>
-        <h1>Felicidades, ya votaste maestro!</h1>
-    </body>
-    </html>
-    """
-
     # Renderizar el formulario
-    return render_template_string(form_html)
+    return render_template("votaciones/felicitaciones.html")

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candidatos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='App.css') }}">
+</head>
+<body class="App">
+    <div class="App-header">
+        <h1>Selecciona tu Candidato</h1>
+        <div class="galeria-candidatos">
+            {% for partido in partidos %}
+                <div class="candidato-container">
+                    <img src="{{ url_for('static', filename='candidatos/' ~ partido.imagen_boleta) }}" alt="Candidato {{ partido.presidente }}" class="candidato-imagen">
+                    <button type="button" class="btn-votar" data-id="{{ partido.candidatos_id }}" data-partido="{{ partido.partido_politico }}">Votar por {{ partido.siglas }}</button>
+                </div>
+            {% endfor %}
+        </div>        
+        <!-- Modal de Confirmación -->
+        <div id="modalConfirmacion" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Confirmar Voto</h2>
+                <p>¿Estás seguro de que quieres votar por este candidato?</p>
+                <form action="{{ url_for('API-VOTE.votar') }}" method="post">
+                    <input type="hidden" name="voto" id="inputVoto" value="">
+                    <button type="submit" class="btn-confirm">Confirmar Voto</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.btn-votar').click(function() {
+                var candidatoId = $(this).data('id');
+                var partidoPolitico = $(this).data('partido');
+                var candidatoInfo = {
+                    'candidatos_id': candidatoId,
+                    'partido_politico': partidoPolitico
+                };
+                
+                $('#inputVoto').val(JSON.stringify(candidatoInfo));
+                $('#modalConfirmacion').css('display', 'block');
+            });
+
+            $('.close').click(function() {
+                $('#modalConfirmacion').css('display', 'none');
+            });
+
+            $(window).click(function(event) {
+                if ($(event.target).is('.modal')) {
+                    $('.modal').css('display', 'none');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
