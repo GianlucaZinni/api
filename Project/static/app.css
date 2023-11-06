@@ -1,0 +1,144 @@
+/* App.css */
+.App {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .App-header {
+    width: 80%;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+  }
+  
+  button {
+    margin-top: 20px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: white;
+    color: #FE6B8B;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: bold;
+  }
+  
+  button:hover {
+    background-color: #FF8E53;
+    color: white;
+  }
+
+  input[type="text"] {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd; /* un borde suave */
+    border-radius: 5px; /* bordes redondeados */
+    background-color: #fff; /* fondo blanco para los inputs */
+    color: #333; /* Color del texto */
+}
+
+  input[type="text"]:focus {
+  border-color: #FE6B8B;
+  outline: none; /* Elimina el outline que algunos navegadores agregan por defecto */
+}
+
+.galeria-candidatos {
+  display: flex;
+  overflow-x: auto; /* Habilita el scroll horizontal */
+  width: 100%; /* Utiliza el 100% del ancho disponible */
+  margin: 0 auto; /* Centra la galería si no ocupa todo el ancho */
+  padding: 20px; /* Espacio alrededor de la galería */
+  box-sizing: border-box; /* Incluye padding en el ancho total */
+}
+
+/* Estilos para los candidatos en lugar de botones dentro de galería de candidatos */
+.galeria-candidatos .candidato {
+  width: 150px; /* Tamaño mediano ajustado */
+  height: auto;
+  border-radius: 15%;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: border 0.3s ease;
+  object-fit: cover; /* Asegura que la imagen se ajuste sin perder su relación de aspecto */
+}
+
+.galeria-candidatos .candidato.seleccionado {
+  border: 2px solid gold; /* Estilo para la imagen seleccionada */
+}
+
+/* Estilo para la imagen seleccionada */
+.seleccionado {
+  border-color: gold; /* Cambia el borde a dorado cuando la imagen está seleccionada */
+}
+
+.modal {
+  display: none; /* Ocultar el modal por defecto */
+  position: fixed;
+  z-index: 1; /* Asegura que el modal estará sobre otros elementos */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto; /* Habilita el scroll si es necesario */
+  background-color: rgba(0,0,0,0.4); /* Color de fondo con transparencia */
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% del top y centrado horizontalmente */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Podrías ajustar al ancho deseado */
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.candidato-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px;
+}
+
+.candidato-imagen {
+  width: 150px;
+  height: auto;
+  border-radius: 15%;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.btn-votar {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4CAF50; /* Green background for voting button */
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-weight: bold;
+}
+
+.btn-votar:hover {
+  background-color: #45a049; /* Darker green on hover */
+}

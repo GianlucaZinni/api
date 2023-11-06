@@ -1,5 +1,6 @@
 from flask import (
     Blueprint,
+    render_template,
     render_template_string,
     request,
     redirect,
@@ -12,19 +13,16 @@ from Project.votechain_api.stacks.controller.functions.email.index import (
     get_email_code,
     post_email_code,
 )
-from Project.votechain_api.stacks.controller.functions.vote.index import post_audit_vote, get_candidatos, get_partidos_politicos, check_if_valid
-from Project.votechain_api.stacks.signature.functions.sign_message.index import sign_message
+from Project.votechain_api.stacks.controller.functions.vote.index import post_audit_vote, get_candidatos, get_partidos_politicos
 from votechain_api.access import (
     google_login_required,
     votechain_register_required,
     verify_actually_audit,
-    verify_actually_vote,
-    verify_nro_tramite
+    verify_actually_vote
 )
 import requests
 import json
-import os
-from cryptography.hazmat.primitives import serialization
+
 
 vote = Blueprint("API-VOTE", __name__)
 
@@ -59,39 +57,14 @@ def validar_codigo(votechain_user, google_user):
     if code:
         api.message_email = code.tries
 
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>VOTECHAIN - EMAIL VERIFICATION</title>
-    </head>
-    <body>
-        <h1>Se te ha enviado un código por email, ingrésalo a continuación</h1>
-        <form method="POST">
-            <input type="text" name="verification_code" placeholder="Código de verificación" required>
-            <button type="submit">Verificar</button>
-        </form>
-        {% if message %}
-            <br>
-            <label value="{{ message }}"> Cantidad de intentos restantes: {{ message }} </label>
-        {% endif %}
-    </body>
-    </html>
-    """
-
-    return render_template_string(html, message=api.message_email)
+    return render_template("votaciones/verificar_email.html", message=api.message_email)
 
 
 @vote.route("/votechain/candidatos", methods=["GET"])
 @google_login_required
 @votechain_register_required
 @verify_actually_vote
-def candidatos(votechain_user, google_user):
-    # Crear el formulario HTML con tres botones
-    
-    if not check_if_valid(votechain_user):
-        return redirect(url_for("API-VOTE_AUTH.persona_info"))
-    
+def candidatos(votechain_user, google_user): 
     # Ejemplo de cómo obtener candidatos y sus partidos
     candidatos = get_candidatos()
     partidos = []
@@ -108,98 +81,40 @@ def candidatos(votechain_user, google_user):
             "partido_id": partido_politico.partido_id,
             "candidatos_id": candidato.candidatos_id
         }
-
         partidos.append(info_partido)
 
-    
-    form_html = """
-        <form method="POST" action="/votechain/votar">
+    # Renderizar la plantilla HTML con los partidos
+    return render_template("votaciones/candidatos.html", partidos=partidos)
 
-    """
-    for partido_politico in partidos:
-        form_html += f"""
-        <button type="submit" name="voto" value="{partido_politico}">Votar por {partido_politico.get("partido_politico")}</button>
-        """
-        
-    form_html += """
-        </form>
-        """
-
-    # Renderizar el formulario
-    return render_template_string(form_html)
-
-import base64
 
 @vote.route("/votechain/votar", methods=["POST"])
 @google_login_required
 @votechain_register_required
-@verify_nro_tramite
 @verify_actually_vote
 def votar(votechain_user, google_user):
-    # Recibir y procesar los datos del formulario
-    candidato_votado = json.loads(request.form.get("voto").replace("'", "\""))
-    
-    if request.method == "POST":
-        
-        
-        data = {
-            "token" : os.getenv("SECRET-TOKEN"),
-            "voto" : {
+    try:
+        candidato_votado = request.form.get("voto")
+        if candidato_votado:
+            candidato_votado = json.loads(candidato_votado.replace("'", "\""))
+            voto = {
                 "lista": candidato_votado.get("lista"),
                 "partido": candidato_votado.get("partido_politico")
             }
-        }
-
-        # No se usa
-        # encrypted_message = base64.b64encode(sign_message(json.dumps(vote))).decode('utf-8')
-        
-        # Realizar el POST a la ruta especificada
-        response = requests.post("http://127.0.0.1:8000/registrar_voto", json=data)
-        
-        # Comprobar si la solicitud POST fue exitosa
-        if response.status_code == 200:
-            post_audit_vote(votechain_user)
-            # Si la solicitud fue exitosa, puedes redirigir al usuario a la página deseada
-            return redirect(url_for("API-VOTE.votado"))
+            response = requests.post("http://127.0.0.1:8000/registrar_voto", json=voto)
+            if response.status_code == 200:
+                post_audit_vote(votechain_user)
+                return redirect(url_for("API-VOTE.votado"))
+            else:
+                raise Exception("Error al registrar el voto.")
         else:
-            # Si la solicitud falló, puedes manejar el error de alguna manera
-            # Por ejemplo, puedes mostrar un mensaje de error o redirigir a una página de error
-            form_html = """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Error al intentar votar</title>
-            </head>
-            <body>
-                <h1>{response.text}</h1>
-            </body>
-            </html>
-            """
-
-            # Renderizar el formulario
-            return render_template_string(form_html)
-                
+            raise ValueError("No se recibió información de voto.")
+    except Exception as e:
+        return f"Error: {e}"
+        
 
 @vote.route("/votechain/votado", methods=["GET"])
 @google_login_required
 @votechain_register_required
 def votado(votechain_user, google_user):
-    
-    if not check_if_valid(votechain_user):
-        return redirect(url_for("API-VOTE_AUTH.persona_info"))
-    
-    # Crear el formulario HTML con tres botones
-    form_html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>VOTACION REALIZADA</title>
-    </head>
-    <body>
-        <h1>Felicidades, ya votaste maestro!</h1>
-    </body>
-    </html>
-    """
-
     # Renderizar el formulario
-    return render_template_string(form_html)
+    return render_template("votaciones/felicitaciones.html")

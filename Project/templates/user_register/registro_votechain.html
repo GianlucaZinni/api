@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+    <html>
+        <head>
+            <title>Registro en Votechain</title>
+            <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='app.css') }}">
+        </head>
+        <body class="App">
+            <div class="App-header">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                <h1>Registro en Votechain</h1>
+                <form method="POST">
+                    <label for="dni" style="color:white;">DNI:</label>
+                    <input type="text" name="dni" required style="margin-bottom:10px; width:100%;">
+                    <br>
+                    <label for="nombre" style="color:white;">Nombre:</label>
+                    <input type="text" name="nombre" required style="margin-bottom:10px; width:100%;">
+                    <br>
+                    <label for="apellido" style="color:white;">Apellido:</label>
+                    <input type="text" name="apellido" required style="margin-bottom:10px; width:100%;">
+                    <br>
+                    <label for="telefono" style="color:white;">Teléfono:</label>
+                    <input type="text" name="telefono" required style="margin-bottom:10px; width:100%;">
+                    <br>
+                    <button type="submit" style="cursor:pointer; transition:background-color 0.2s; padding:10px 15px; border:none; border-radius:5px; background-color:white; color:#FE6B8B;">Registrar</button>
+                </form>
+            </div>
+        </body>
+    </html>

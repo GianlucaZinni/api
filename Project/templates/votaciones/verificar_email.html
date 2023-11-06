@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>VOTECHAIN - EMAIL VERIFICATION</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='App.css') }}">
+</head>
+<body class="App">
+    <header class="App-header">
+        <h1>Se te ha enviado un código por email, ingrésalo a continuación</h1>
+        <form method="POST">
+            <input type="text" name="verification_code" placeholder="Código de verificación" required>
+            <button type="submit">Verificar</button>
+        </form>
+        {% if message %}
+            <br>
+            <label value="{{ message }}"> Cantidad de intentos restantes: {{ message }} </label>
+        {% endif %}
+    </header>
+</body>
+</html>

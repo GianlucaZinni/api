@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Información del usuario</title>
+        <!-- Asegúrate de que la ruta al archivo CSS es correcta -->
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='app.css') }}">
+    </head>
+    <body class="App">
+        <div class="App-header">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <h1>Información del usuario</h1>
+            <p>DNI: {{ votechain_user.DNI }}</p>
+            <p>Nombre: {{ votechain_user.nombre }}</p>
+            <p>Apellido: {{ votechain_user.apellido }}</p>
+            <p>Correo Electrónico: {{ google_user.email }}</p>
+            <p>Teléfono: {{ votechain_user.telefono }}</p>
+
+            {% if votechain_user.nro_tramite %}
+                <p>Número de Trámite: {{ votechain_user.nro_tramite }}</p>
+                <p>{{ validation_message }}</p>
+                {% if validation_message == "Válido para votar." %}
+                    <a href="{{ url_for('API-VOTE.validar_codigo') }}"><button>Ir a votar</button></a>
+                {% endif %}
+            {% else %}
+                <form method="POST">
+                    <label for="nro_tramite">Número de Trámite:</label>
+                    <input type="text" name="nro_tramite" id="nro_tramite">
+                    <p>{{ nro_tramite }} {{ validation_message }}</p>
+                    <button type="submit">Enviar</button>
+                </form>
+                {% if message %}
+                    <p>Cantidad de intentos restantes: {{ message }}</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </body>
+</html>
