@@ -1,13 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from layers.database import db_app
-
-params = db_app.enviroment_variables
+import os
 
 class SQLAlchemyHandler:
     
     def connect(self, database_name):
-        engine = create_engine(f"{params['DB_CONFIG']['SQLALCHEMY']['DATABASE_URI']}{database_name}")
+        engine = create_engine(f"{os.getenv('DATABASE_URI')}/{database_name}")
         session_maker = sessionmaker(bind=engine)
         return session_maker()
 

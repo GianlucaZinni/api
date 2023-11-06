@@ -75,3 +75,26 @@ class Padron(Base):
     
     def __repr__(self):
         return f"<Email Verification {self.DNI}, tiempo restante: {self.nro_tramite}, tries: {self.tries}>"
+    
+
+class CandidatosPresiVice(Base):
+    __tablename__ = 'CandidatosPresiVice'
+
+    candidatos_id = Column(Integer, primary_key=True, autoincrement=True)
+    nombre_presidente = Column(String(255), nullable=False)
+    apellido_presidente = Column(String(255), nullable=False)
+    nombre_vicepresidente = Column(String(255))
+    apellido_vicepresidente = Column(String(255))
+    foto_url = Column(String(255))
+
+class PartidoPolitico(Base):
+    __tablename__ = 'PartidoPolitico'
+
+    partido_id = Column(Integer, primary_key=True, autoincrement=True)
+    nombre = Column(String(255), nullable=False)
+    siglas = Column(String(10))
+    fundacion = Column(DateTime)
+    logo_url = Column(String(255))
+    candidatos_id = Column(Integer, ForeignKey('CandidatosPresiVice.candidatos_id'))
+
+    candidatos = relationship('CandidatosPresiVice', backref='partidos')

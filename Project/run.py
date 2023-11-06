@@ -14,7 +14,7 @@ sys.path.append(PROJECT_DIR)
 from layers.database.mysql.create_databases import create_databases, create_renaper_data
 
 create_databases()
-create_renaper_data(True) # Si es True, crea 300 registros falsos en la base de datos RENAPER
+create_renaper_data(False) # Si es True, crea 300 registros falsos en la base de datos RENAPER
 
 from votechain_api import create_app
 from flask.logging import default_handler

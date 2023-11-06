@@ -12,13 +12,15 @@ from Project.votechain_api.stacks.controller.functions.email.index import (
     get_email_code,
     post_email_code,
 )
-from Project.votechain_api.stacks.controller.functions.vote.index import post_vote
+from Project.votechain_api.stacks.controller.functions.vote.index import post_audit_vote, get_candidatos, get_partidos_politicos
 from votechain_api.access import (
     google_login_required,
     votechain_register_required,
     verify_actually_audit,
     verify_actually_vote
 )
+import requests
+
 
 vote = Blueprint("API-VOTE", __name__)
 
@@ -82,13 +84,41 @@ def validar_codigo(votechain_user, google_user):
 @verify_actually_vote
 def candidatos(votechain_user, google_user):
     # Crear el formulario HTML con tres botones
+    
+    
+# Ejemplo de cómo obtener candidatos y sus partidos
+    candidatos = get_candidatos()
+    partidos = []
+    for candidato in candidatos:
+        partido_politico = get_partidos_politicos(candidato)[0]
+        info_partido = {
+            "partido_politico": partido_politico.nombre,
+            "siglas": partido_politico.siglas,
+            "presidente": candidato.nombre_presidente + " " + candidato.apellido_presidente,
+            "vicepresidente": candidato.nombre_vicepresidente + " " + candidato.apellido_vicepresidente,
+            "imagen_boleta": candidato.foto_url,
+            "imagen_logo": partido_politico.logo_url,
+            "partido_id": partido_politico.partido_id,
+            "candidatos_id": candidato.candidatos_id
+        }
+
+        partidos.append(info_partido)
+
+
+    print(partidos)
+    
     form_html = """
-    <form method="POST" action="/votechain/votar">
-        <button type="submit" name="voto" value="candidato1">Votar por Candidato 1</button>
-        <button type="submit" name="voto" value="candidato2">Votar por Candidato 2</button>
-        <button type="submit" name="voto" value="candidato3">Votar por Candidato 3</button>
-    </form>
+        <form method="POST" action="/votechain/votar">
+
     """
+    for partido_politico in partidos:
+        form_html += f"""
+        <button type="submit" name="voto" value="{partido_politico.get("partido_id")}">Votar por {partido_politico.get("partido_politico")}</button>
+        """
+        
+    form_html += """
+        </form>
+        """
 
     # Renderizar el formulario
     return render_template_string(form_html)
@@ -103,13 +133,26 @@ def votar(votechain_user, google_user):
     candidato_votado = request.form.get("voto")
     
     if request.method == "POST":
-        post_vote(votechain_user)
+        post_audit_vote(votechain_user)
         
-        # FALTA LA LÓGICA DE POST HACIA EL REPO DE CORE
+        # Crear el JSON con los datos que deseas enviar
+        data = {
+            "lista": "135A",
+            "partido": "La Libertad Avanza"
+        }
         
-        return redirect(url_for("API-VOTE.votado"))
+        # Realizar el POST a la ruta especificada
+        response = requests.post("http://127.0.0.1:8000/registrar_voto", json=data)
         
-
+        # Comprobar si la solicitud POST fue exitosa
+        if response.status_code == 200:
+            # Si la solicitud fue exitosa, puedes redirigir al usuario a la página deseada
+            return redirect(url_for("API-VOTE.votado"))
+        else:
+            # Si la solicitud falló, puedes manejar el error de alguna manera
+            # Por ejemplo, puedes mostrar un mensaje de error o redirigir a una página de error
+            return "Error al registrar el voto. Por favor, inténtalo de nuevo."
+        
 
 @vote.route("/votechain/votado", methods=["GET"])
 @google_login_required
