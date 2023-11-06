@@ -1,0 +1,51 @@
+/* App.css */
+.App {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(45deg, #FE6B8B 30%, #FF8E53 90%);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .App-header {
+    width: 80%;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+  }
+  
+  button {
+    margin-top: 20px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: white;
+    color: #FE6B8B;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: bold;
+  }
+  
+  button:hover {
+    background-color: #FF8E53;
+    color: white;
+  }
+
+  input[type="text"] {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd; /* un borde suave */
+    border-radius: 5px; /* bordes redondeados */
+    background-color: #fff; /* fondo blanco para los inputs */
+    color: #333; /* Color del texto */
+}
+
+input[type="text"]:focus {
+  border-color: #FE6B8B;
+  outline: none; /* Elimina el outline que algunos navegadores agregan por defecto */
+}

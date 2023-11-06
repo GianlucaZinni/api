@@ -1,5 +1,6 @@
 from flask import (
     redirect,
+    render_template,
     url_for,
     render_template_string,
     Blueprint,
@@ -34,7 +35,18 @@ def register(google_user):
 
     if request.method == "POST":
         persona_data = request.form
+        try:
+            dni = int(persona_data.get("dni", "").strip())
+        except ValueError:
+            return jsonify({"error": "DNI debe ser un número."}), 400
 
+        nombre = persona_data.get("nombre", "").strip()
+        apellido = persona_data.get("apellido", "").strip()
+        telefono = persona_data.get("telefono", "").strip()
+
+        if not nombre or not apellido:
+            return jsonify({"error": "Nombre y apellido son obligatorios."}), 400
+        
         if not persona_data:
             return jsonify({"error": "No data sent."}), 400
 
@@ -70,33 +82,7 @@ def register(google_user):
             408,
         )
 
-    html = """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Registro en Votechain</title>
-        </head>
-        <body>
-            <h1>Registro en Votechain</h1>
-            <form method="POST">
-                <label for="dni">DNI:</label>
-                <input type="text" name="dni" required>
-                <br>
-                <label for="nombre">Nombre:</label>
-                <input type="text" name="nombre" required>
-                <br>
-                <label for="apellido">Apellido:</label>
-                <input type="text" name="apellido" required>
-                <br>
-                <label for="telefono">Teléfono:</label>
-                <input type="text" name="telefono" required>
-                <br>
-                <button type="submit">Registrar</button>
-            </form>
-        </body>
-        </html>
-    """
-    return render_template_string(html)
+    return render_template('user_register/registro_votechain.html')
 
 
 @vote_auth.route("/votechain/persona_info", methods=["GET", "POST"])
@@ -130,47 +116,8 @@ def persona_info(votechain_user, google_user):
         else:
             validation_message = "No válido para votar."
 
-    html = """
-        <!DOCTYPE html>
-        <html>
-
-        <head>
-            <title>Información del usuario</title>
-        </head>
-
-        <body>
-            <h1>Información del usuario</h1>
-            <p for="DNI" value="{{ votechain_user.DNI }}">DNI: {{ votechain_user.DNI }} </p>
-            <p for="nombre" value="{{ votechain_user.nombre }}">Nombre: {{ votechain_user.nombre }} </p>
-            <p for="apellido" value="{{ votechain_user.apellido }}">Apellido: {{ votechain_user.apellido }} </p>
-            <p for="email" value="{{ google_user.email }}">Correo Electrónico: {{ google_user.email }} </p>
-            <p for="telefono" value="{{ votechain_user.telefono }}">Teléfono: {{ votechain_user.telefono }} </p>
-
-            {% if votechain_user.nro_tramite %}
-                <label for="nro_tramite">Número de Trámite: {{ votechain_user.nro_tramite }} </label>
-                <br><br>
-                <label> {{ validation_message }} </label>
-                <br>
-                <br>
-                {% if validation_message == "Válido para votar." %}
-                    <a href="{{ url_for("API-VOTE.validar_codigo") }}"><button>Ir a votar</button></a>
-                {% endif %}
-            {% else %}
-                <form action="" method="POST">
-                    <label for="nro_tramite">Número de Trámite: {{ nro_tramite }} {{ validation_message }} </label>
-                    <input type="text" name="nro_tramite" id="nro_tramite">
-                    <button type="submit">Enviar</button>
-                </form>
-                {% if message %}
-                    <br>
-                    <label value="{{ message }}"> Cantidad de intentos restantes: {{ message }} </label>
-                {% endif %}
-            {% endif %}
-        </body>
-        </html>
-    """
-    return render_template_string(
-        html,
+    return render_template(
+        "user_register/persona_info_votechain.html",
         votechain_user=votechain_user,
         google_user=google_user,
         validation_message=validation_message,

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Información del usuario</title>
+    </head>
+    <body>
+        <h1>Información del usuario</h1>
+        <p for="DNI" value="{{ votechain_user.DNI }}">DNI: {{ votechain_user.DNI }} </p>
+        <p for="nombre" value="{{ votechain_user.nombre }}">Nombre: {{ votechain_user.nombre }} </p>
+        <p for="apellido" value="{{ votechain_user.apellido }}">Apellido: {{ votechain_user.apellido }} </p>
+        <p for="email" value="{{ google_user.email }}">Correo Electrónico: {{ google_user.email }} </p>
+        <p for="telefono" value="{{ votechain_user.telefono }}">Teléfono: {{ votechain_user.telefono }} </p>
+
+        {% if votechain_user.nro_tramite %}
+            <label for="nro_tramite">Número de Trámite: {{ votechain_user.nro_tramite }} </label>
+            <br><br>
+            <label> {{ validation_message }} </label>
+            <br>
+            <br>
+            {% if validation_message == "Válido para votar." %}
+                <a href="{{ url_for("API-VOTE.validar_codigo") }}"><button>Ir a votar</button></a>
+            {% endif %}
+        {% else %}
+            <form action="" method="POST">
+                <label for="nro_tramite">Número de Trámite: {{ nro_tramite }} {{ validation_message }} </label>
+                <input type="text" name="nro_tramite" id="nro_tramite">
+                <button type="submit">Enviar</button>
+            </form>
+            {% if message %}
+                <br>
+                <label value="{{ message }}"> Cantidad de intentos restantes: {{ message }} </label>
+            {% endif %}
+        {% endif %}
+    </body>
+</html>

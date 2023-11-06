@@ -16,7 +16,6 @@ def index():
 # Route to start Google authentication
 @google_auth.route("/google/login", methods=["GET", "POST"])
 def google_login():
-    print(session)
     """
     Initiate Google authentication.
     """
@@ -42,8 +41,6 @@ def authorized():
     save_google_user(user_data)
 
     access_token = response.get('access_token')
-    print("REPSONSE", response)
-    print("ACCESS TOKEN", access_token)
     return redirect(url_for("API-VOTE_AUTH.register"))
 
 # Route to log out
