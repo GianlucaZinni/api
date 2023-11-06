@@ -1,8 +1,0 @@
-black
-pylint
-pre-commit
-pyclean
-twine
-pytest
-pytest-cov
-pytest-env
