@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Códigos excedidos</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body class="App">
+    <div class="App-header">
+        <h1>Has excedido la cantidad de intentos</h1>
+        <a href="{{ url_for('API-GOOGLE_AUTH.index') }}">
+            <button>Volver al inicio</button>
+        </a>
+    </div>
+</body>
+</html>

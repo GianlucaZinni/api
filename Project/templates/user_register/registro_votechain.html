@@ -6,6 +6,13 @@
         </head>
         <body class="App">
             <div class="App-header">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
                 <h1>Registro en Votechain</h1>
                 <form method="POST">
                     <label for="dni" style="color:white;">DNI:</label>

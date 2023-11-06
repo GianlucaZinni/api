@@ -2,34 +2,45 @@
 <html>
     <head>
         <title>Información del usuario</title>
+        <!-- Asegúrate de que la ruta al archivo CSS es correcta -->
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='app.css') }}">
     </head>
-    <body>
-        <h1>Información del usuario</h1>
-        <p for="DNI" value="{{ votechain_user.DNI }}">DNI: {{ votechain_user.DNI }} </p>
-        <p for="nombre" value="{{ votechain_user.nombre }}">Nombre: {{ votechain_user.nombre }} </p>
-        <p for="apellido" value="{{ votechain_user.apellido }}">Apellido: {{ votechain_user.apellido }} </p>
-        <p for="email" value="{{ google_user.email }}">Correo Electrónico: {{ google_user.email }} </p>
-        <p for="telefono" value="{{ votechain_user.telefono }}">Teléfono: {{ votechain_user.telefono }} </p>
+    <body class="App">
+        <div class="App-header">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
 
-        {% if votechain_user.nro_tramite %}
-            <label for="nro_tramite">Número de Trámite: {{ votechain_user.nro_tramite }} </label>
-            <br><br>
-            <label> {{ validation_message }} </label>
-            <br>
-            <br>
-            {% if validation_message == "Válido para votar." %}
-                <a href="{{ url_for("API-VOTE.validar_codigo") }}"><button>Ir a votar</button></a>
+            <h1>Información del usuario</h1>
+            <p>DNI: {{ votechain_user.DNI }}</p>
+            <p>Nombre: {{ votechain_user.nombre }}</p>
+            <p>Apellido: {{ votechain_user.apellido }}</p>
+            <p>Correo Electrónico: {{ google_user.email }}</p>
+            <p>Teléfono: {{ votechain_user.telefono }}</p>
+
+            {% if votechain_user.nro_tramite %}
+                <p>Número de Trámite: {{ votechain_user.nro_tramite }}</p>
+                <p>{{ validation_message }}</p>
+                {% if validation_message == "Válido para votar." %}
+                    <a href="{{ url_for('API-VOTE.validar_codigo') }}"><button>Ir a votar</button></a>
+                {% endif %}
+            {% else %}
+                <form method="POST">
+                    <label for="nro_tramite">Número de Trámite:</label>
+                    <input type="text" name="nro_tramite" id="nro_tramite">
+                    <p>{{ nro_tramite }} {{ validation_message }}</p>
+                    <button type="submit">Enviar</button>
+                </form>
+                {% if message %}
+                    <p>Cantidad de intentos restantes: {{ message }}</p>
+                {% endif %}
             {% endif %}
-        {% else %}
-            <form action="" method="POST">
-                <label for="nro_tramite">Número de Trámite: {{ nro_tramite }} {{ validation_message }} </label>
-                <input type="text" name="nro_tramite" id="nro_tramite">
-                <button type="submit">Enviar</button>
-            </form>
-            {% if message %}
-                <br>
-                <label value="{{ message }}"> Cantidad de intentos restantes: {{ message }} </label>
-            {% endif %}
-        {% endif %}
+        </div>
     </body>
 </html>

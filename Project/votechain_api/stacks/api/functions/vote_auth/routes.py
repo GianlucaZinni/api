@@ -7,6 +7,7 @@ from flask import (
     jsonify,
     request,
     session,
+    flash
 )
 from votechain_api.stacks.api import api
 from votechain_api.access import (
@@ -38,81 +39,77 @@ def register(google_user):
         try:
             dni = int(persona_data.get("dni", "").strip())
         except ValueError:
-            return jsonify({"error": "DNI debe ser un número."}), 400
+            flash("DNI debe ser un número.", "error")
+            return redirect(url_for("API-VOTE_AUTH.register"))
 
         nombre = persona_data.get("nombre", "").strip()
         apellido = persona_data.get("apellido", "").strip()
         telefono = persona_data.get("telefono", "").strip()
 
         if not nombre or not apellido:
-            return jsonify({"error": "Nombre y apellido son obligatorios."}), 400
+            flash("Nombre y apellido son obligatorios.", "error")
+            return redirect(url_for("API-VOTE_AUTH.register"))
         
         if not persona_data:
-            return jsonify({"error": "No data sent."}), 400
+            flash("No has enviado informacion", "error")
+            return redirect(url_for("API-VOTE_AUTH.register"))
 
         verification_result = verificar_en_padron(persona_data)
 
         if verification_result:
             if not check_dni_already_exists(persona_data):
                 insert_into_votechain(persona_data, google_user.id_google)
-
                 return redirect(url_for("API-VOTE_AUTH.persona_info"))
+            flash("El DNI ya está registrado a una cuenta de email distinta.", "error")
+            return redirect(url_for("API-VOTE_AUTH.register"))
 
-            return (
-                jsonify(
-                    {
-                        "message": "El DNI ya está registrado a una cuenta de email distinta."
-                    }
-                ),
-                400,
-            )
 
         if verification_result is False:
-            return (
-                jsonify(
-                    {
-                        "message": "El DNI está registrado en el padrón, pero los datos ingresados son incorrectos."
-                    }
-                ),
-                417,
-            )
+            flash("El DNI está registrado en el padrón, pero los datos ingresados son incorrectos.", "error")
+            return redirect(url_for("API-VOTE_AUTH.register"))
 
-        return (
-            jsonify({"message": "El individuo no está registrado en el Padrón."}),
-            408,
-        )
-
+        flash("El individuo no está registrado en el Padrón.", "error")
+        return redirect(url_for("API-VOTE_AUTH.register"))
+    
     return render_template('user_register/registro_votechain.html')
-
 
 @vote_auth.route("/votechain/persona_info", methods=["GET", "POST"])
 @google_login_required
 @votechain_register_required
 def persona_info(votechain_user, google_user):
     individuo_renaper = obtener_individuo_renaper(votechain_user)
+    validation_message = None
+
     if request.method == "POST":
+        nro_tramite_str = request.form.get("nro_tramite", "").strip()
+        
+        # Verificar que el número de trámite sea un entero
+        try:
+            nro_tramite = int(nro_tramite_str)
+        except ValueError:
+            flash("El número de trámite debe ser un número entero.", "error")
+            return redirect(url_for("API-VOTE_AUTH.persona_info"))
+        
         response = post_nro_tramite(
             votechain_user,
             google_user,
             individuo_renaper,
             request.form.get("nro_tramite"),
         )
-
         if response == "success":
+            flash('Número de trámite aceptado con éxito.', 'success')
             return redirect(url_for("API-VOTE_AUTH.persona_info"))
-
         elif response == "invalid":
-            api.message_info = f"Nro de trámite inválido. Cantidad de intentos restantes {votechain_user.tries}"
+            flash(f'Nro de trámite inválido. Cantidad de intentos restantes {votechain_user.tries}', 'error')
             return redirect(url_for("API-VOTE_AUTH.persona_info"))
-
         elif response == "no-tries":
+            flash('Has excedido el número máximo de intentos.', 'error')
             return redirect(url_for("API-VOTE_AUTH.exceeded_tries"))
 
     if individuo_renaper:
         api.message_info = votechain_user.tries
         if individuo_renaper.valid:
             validation_message = "Válido para votar."
-
         else:
             validation_message = "No válido para votar."
 
@@ -124,22 +121,7 @@ def persona_info(votechain_user, google_user):
         message=api.message_info,
     )
 
-
 @vote_auth.route("/votechain/exceeded", methods=["GET"])
 def exceeded_tries():
     session.clear()
-    html = """
-        <!DOCTYPE html>
-        <html>
-
-        <head>
-            <title>Códigos excedidos</title>
-        </head>
-
-        <body>
-            <h1>Has excedido la cantidad de intentos</h1>
-            <a href="{{ url_for("API-GOOGLE_AUTH.index") }}"><button>Volver al inicio</button></a>
-        </body>
-        </html>
-    """
-    return render_template_string(html)
+    return render_template("user_register/codigos_excedidos")
