@@ -2,7 +2,7 @@ import random
 from datetime import datetime, timedelta
 from votechain_api.stacks.controller import controller, sql_add, sql_delete
 from layers.database.sqlalchemy.models import EmailVerification, Auditory
-from Project.layers.email.index import enviar_correo
+from layers.email.index import enviar_correo
 
 db_session = controller.db_session
 

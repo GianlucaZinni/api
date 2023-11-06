@@ -1,5 +1,5 @@
 import mysql.connector
-from Project.database import db_app
+from database import db_app
 from os import getenv
 
 params = db_app.enviroment_variables
