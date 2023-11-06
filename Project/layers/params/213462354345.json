@@ -2,7 +2,7 @@
     "DB_CONFIG": {
         "GENERAL": {
             "USERNAME": "root",
-            "PASSWORD": "42886236",
+            "PASSWORD": "12341234",
             "HOST": "localhost"
         },
         "DATABASES": [
@@ -12,7 +12,7 @@
             "RENAPER"
         ],
         "SQLALCHEMY": {
-            "DATABASE_URI": "mysql://root:42886236@localhost/",
+            "DATABASE_URI": "mysql://root:12341234@localhost/",
             "TRACK_MODIFICATIONS": false
         }
     },
