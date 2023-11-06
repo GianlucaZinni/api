@@ -16,11 +16,12 @@ def index():
 # Route to start Google authentication
 @google_auth.route("/google/login", methods=["GET", "POST"])
 def google_login():
+    print(session)
     """
     Initiate Google authentication.
     """
     return api.google_key.authorize(
-        callback=url_for("API-GOOGLE_AUTH.authorized", _external=True)
+        callback="http://127.0.0.1:5001/google/login/authorized"
     )
 
 # Route to receive Google's response and authorize the user
@@ -30,6 +31,7 @@ def authorized():
     Handle Google's authorization response and save user data.
     """
     response = api.google_key.authorized_response()
+    
     if response is None or response.get("access_token") is None:
         return jsonify("Error authorizing with Google"), 401
 
@@ -39,7 +41,10 @@ def authorized():
     user_data = api.google_key.get("userinfo").data
     save_google_user(user_data)
 
-    return redirect(url_for("API-VOTE_AUTH.register"))
+    access_token = response.get('access_token')
+    print("REPSONSE", response)
+    print("ACCESS TOKEN", access_token)
+    return redirect(f"http://localhost:3000/register?token={access_token}")
 
 # Route to log out
 @google_auth.route("/logout", methods=["GET", "POST"])

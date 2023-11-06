@@ -1,0 +1,15 @@
+.md
+.api_venv
+*.swp
+package-lock.json
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+.pyc
+*.log
+.pycache
+```
+__pycache__
+/params
+/*_session/
