@@ -1,47 +1,70 @@
-Configuración del proyecto
-Env con Python, Flask y MySQL.
+# Proyecto Votechain
 
-Se debe configurar SSL en producción, ya que transmitirá información de autenticación confidencial a través de Internet. (NGINX o Apache).
+¡Bienvenido al Proyecto Votechain! Este proyecto es una aplicación que simula un servicio de votación electrónica segura.
 
-MySQL DB Setup
+## Instalación del entorno
 
-Asegúrate de haber configurado previamente un servidor MySQL y tener acceso a una base de datos. 
-A continuación, se proporcionan instrucciones SQL para crear la base de datos authdb_dev, así como las tablas clients y blacklist:
+1. Clona el repositorio en tu máquina local:
 
-1. Crear la base de datos:
+   ```bash
+   git clone https://github.com/GianlucaZinni/api
+    ```
 
-CREATE DATABASE authdb_dev;
+2. Navega al directorio del proyecto Votechain API:
 
-2. Crear un usuario y asignar permisos:
-Puedes crear un usuario para la base de datos y asignarle permisos. Asegúrate de reemplazar 'tu_usuario' y 'tu_contrasena' con los valores adecuados.
+    ```bash
+    cd api
+    ```
 
-CREATE USER 'tu_usuario'@'localhost' IDENTIFIED BY 'tu_contrasena';
-GRANT ALL PRIVILEGES ON authdb_dev.* TO 'tu_usuario'@'localhost';
-FLUSH PRIVILEGES;
+3. Crea un entorno virtual (se recomienda utilizar `venv`):
 
-3. Utilizar la base de datos:
+    ```bash
+    python -m venv venv
+    ```
 
-Antes de crear tablas, asegúrate de utilizar la base de datos authdb_dev:
+4. Activa el entorno virtual:
 
-USE authdb_dev;
+    En Windows desde CMD
+    ```bash
+    .\venv\Scripts\activate
+    ```
 
-4. Crear la tabla clients:
+    En Linux/macOS
+    ```bash
+    source venv/bin/activate
+    ```
 
-CREATE TABLE clients (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    ClientId VARCHAR(128) NOT NULL,
-    ClientSecret VARCHAR(256) NOT NULL,
-    IsAdmin BOOLEAN NOT NULL,
-    UNIQUE (ClientId)
-);
+4. Instala las dependencias del proyecto desde el archivo `requirements.txt`:
+    
+        ```bash
+        pip install -r requirements.txt
+        ```
 
-5. Crear la tabla blacklist:
+## Configurar la aplicación
+En la carpeta principal `Project` se encuentra el archivo `.env` que contiene las variables a modificar:
 
-CREATE TABLE blacklist (
-    token VARCHAR(256) NOT NULL
-);
+`DATABASE_URI`
 
-Estos scripts SQL crean la base de datos authdb_dev, una tabla clients con una restricción UNIQUE en la columna ClientId, y una tabla blacklist para almacenar tokens. Asegúrate de ajustar las configuraciones de usuario y contraseña según tus necesidades y asegurarte de que tu servidor MySQL esté en funcionamiento antes de ejecutar estos comandos.
+`MYSQL_HOST`
 
-Configuración de la aplicación
-pip install flask psycopg2 pyjwt python-dotenv
+`MYSQL_USER`
+
+`MYSQL_PASSWORD`
+
+## Iniciar la aplicación
+
+Una vez que el entorno esté configurado, puedes iniciar la aplicación ejecutando el archivo run.py.
+Este archivo se encargará de generar y llenar las bases de datos, además de iniciar los servicios de Front End y API a través de FLASK.
+    
+    ```bash
+    python run.py
+    ```
+
+# Configuración adiciona en ´run.py´	
+Dentro del archivo run.py, encontrarás una función llamada create_renaper_data. Esta función tiene un parámetro booleano que determina si se deben crear registros falsos en la base de datos RENAPER. Por defecto, está configurado en False. Si deseas crear registros falsos, simplemente cambia el valor a True:
+        
+        ```python
+        create_renaper_data(True) # Si es True, crea 50 registros falsos en la base de datos RENAPER
+        ```
+
+¡Listo! Ahora estás listo para disfrutar de la aplicación Votechain. Si tienes alguna pregunta o problema, no dudes en ponerte en contacto con nosotros. ¡Diviértete explorando!
