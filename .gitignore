@@ -1,5 +1,4 @@
-.md
-.api_venv
+/venv
 *.swp
 package-lock.json
 .vscode/*
